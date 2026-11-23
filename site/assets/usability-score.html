@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>可用性测评量表（修订版）· 在线评判</title>
+<style>
+:root{
+  --bg:#f4f6f9; --card:#ffffff; --ink:#1c2733; --muted:#6b7a89; --line:#e2e8ef;
+  --brand:#1f6feb; --brand-soft:#eaf2ff; --brand-ink:#174ea6;
+  --good:#1a7f5a; --good-soft:#e7f5ee; --warn:#b07515; --warn-soft:#fdf3e0;
+  --bad:#c0392b; --bad-soft:#fdeceb; --r:#c2601a; --r-soft:#fdf0e6;
+  --shadow:0 1px 2px rgba(20,35,55,.04),0 6px 20px rgba(20,35,55,.05);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;
+  font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--brand);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font-family:inherit;font-size:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink)}
+
+/* ---------- 顶栏 ---------- */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1180px;margin:auto;padding:12px 24px;display:flex;
+  align-items:center;gap:24px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+.brand b{font-size:17px;letter-spacing:.2px}
+.brand span{font-size:12px;color:var(--muted)}
+.nav{display:flex;gap:6px;background:#eef2f7;padding:4px;border-radius:10px}
+.nav button{border:0;background:transparent;color:var(--muted);padding:7px 16px;
+  border-radius:7px;font-weight:600;font-size:14px;white-space:nowrap}
+.nav button.on{background:#fff;color:var(--brand-ink);box-shadow:0 1px 4px rgba(20,35,55,.10)}
+.progress-pill{font-size:12px;color:var(--muted);background:#eef2f7;
+  padding:6px 12px;border-radius:999px;white-space:nowrap}
+.progress-pill b{color:var(--brand-ink)}
+
+.wrap{max-width:1180px;margin:0 auto;padding:26px 24px 80px}
+.view[hidden]{display:none!important}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  box-shadow:var(--shadow);padding:22px 24px;margin-bottom:18px}
+.card h2{margin:0 0 6px;font-size:19px;letter-spacing:.2px}
+.card h3{margin:22px 0 8px;font-size:16px}
+.card p{margin:8px 0;color:#3b4a59}
+.sub{color:var(--muted);font-size:13px;margin:0}
+.hr{height:1px;background:var(--line);margin:18px 0;border:0}
+
+/* ---------- 表单通用 ---------- */
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field label{font-size:12px;color:var(--muted);font-weight:600}
+.field input,.field select,.field textarea{border:1px solid var(--line);border-radius:8px;
+  padding:8px 10px;background:#fff;outline:none;width:100%}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--brand);
+  box-shadow:0 0 0 3px var(--brand-soft)}
+.meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:8px 14px;
+  border-radius:9px;font-weight:600;font-size:13px;transition:.15s}
+.btn:hover{border-color:var(--brand);color:var(--brand-ink);background:var(--brand-soft)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;padding:11px 22px;
+  font-size:15px;box-shadow:0 4px 12px rgba(31,111,235,.22)}
+.btn.primary:hover{background:#1a5fd0;color:#fff}
+.btn.ghost{background:transparent}
+.btn.sm{padding:6px 11px;font-size:12px}
+.btn-row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.notice{padding:11px 14px;border-radius:9px;font-size:13px;margin:12px 0;
+  background:var(--brand-soft);color:var(--brand-ink);border:1px solid #d3e3ff}
+.notice.warn{background:var(--warn-soft);color:#8a5a0c;border-color:#f2ddb4}
+.notice.bad{background:var(--bad-soft);color:#9c2d22;border-color:#f5cfcb}
+.notice.good{background:var(--good-soft);color:#116547;border-color:#c8e8d8}
+
+/* ---------- 问卷 ---------- */
+.guide{background:linear-gradient(180deg,#fbfdff,#f6f9ff);border:1px solid #dce8fb}
+.guide .quote{border-left:3px solid var(--brand);padding:4px 0 4px 14px;margin:12px 0;
+  color:#3b4a59;font-size:14px}
+.dim-toolbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;
+  padding-bottom:14px;margin-bottom:6px;border-bottom:1px solid var(--line)}
+.dim-toolbar .spacer{flex:1}
+details.dim{background:#fff;border:1px solid var(--line);border-radius:12px;
+  margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow)}
+details.dim>summary{cursor:pointer;list-style:none;padding:14px 18px;display:flex;
+  align-items:center;gap:12px;background:#fbfcfe;user-select:none}
+details.dim>summary::-webkit-details-marker{display:none}
+details.dim[open]>summary{border-bottom:1px solid var(--line);background:#f7faff}
+summary .chev{color:var(--muted);font-size:12px;transition:transform .18s}
+details.dim[open] summary .chev{transform:rotate(90deg)}
+summary .dim-name{font-weight:700;font-size:15px}
+summary .dim-range{font-size:12px;color:var(--muted);background:#eef2f7;
+  padding:2px 9px;border-radius:999px}
+summary .dim-count{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
+summary .dim-count b{color:var(--brand-ink)}
+.dim-body{padding:6px 18px 14px}
+.dim-desc{font-size:12.5px;color:var(--muted);padding:10px 2px 12px;
+  border-bottom:1px dashed var(--line);margin-bottom:4px}
+
+.item{padding:13px 2px;border-bottom:1px solid #eef2f6}
+.item:last-child{border-bottom:0}
+.item:hover{background:#fbfdff}
+.item.incomplete{background:#fffaf3}
+.item-head{display:flex;gap:9px;align-items:flex-start;margin-bottom:9px}
+.num{flex:none;width:34px;height:24px;border-radius:6px;background:#eef2f7;
+  color:var(--muted);font-size:12px;font-weight:700;display:flex;
+  align-items:center;justify-content:center;margin-top:1px}
+.q{flex:1;font-size:14px;line-height:1.6}
+.tag-r{flex:none;font-size:11px;font-weight:700;color:var(--r);background:var(--r-soft);
+  border:1px solid #f3d9c2;padding:1px 7px;border-radius:999px;margin-top:2px}
+.tag-miss{flex:none;font-size:11px;font-weight:700;color:var(--bad);background:var(--bad-soft);
+  border:1px solid #f5cfcb;padding:1px 7px;border-radius:999px;margin-top:2px}
+.controls{display:grid;grid-template-columns:132px 116px 1fr 132px minmax(150px,1.1fr);
+  gap:12px;align-items:end;padding-left:43px}
+.ctrl-label{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:4px;display:block}
+.seg{display:flex;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+.seg button{flex:1;border:0;background:#fff;padding:6px 4px;font-size:12px;
+  color:var(--muted);border-right:1px solid var(--line);white-space:nowrap}
+.seg button:last-child{border-right:0}
+.seg button:hover{background:var(--brand-soft)}
+.seg button.on{background:var(--brand);color:#fff;font-weight:700}
+.seg.disa{opacity:.42;pointer-events:none}
+.seg.score button{padding:6px 0;font-size:12px}
+.seg.score button.on{background:var(--brand-ink)}
+.remark{width:100%;border:1px solid var(--line);border-radius:8px;padding:7px 9px;
+  font-size:12px;resize:vertical;min-height:34px;outline:none;background:#fff}
+.remark:focus{border-color:var(--brand)}
+.hint{font-size:11px;color:var(--muted);margin:6px 0 0;padding-left:43px}
+.hint.miss{color:var(--bad)}
+
+/* ---------- 结果 ---------- */
+.result-head{display:flex;gap:28px;align-items:center;flex-wrap:wrap}
+.big-score{font-size:66px;font-weight:800;line-height:1;letter-spacing:-2px}
+.big-score small{font-size:20px;color:var(--muted);font-weight:600;letter-spacing:0}
+.grade{display:inline-block;padding:5px 14px;border-radius:999px;font-weight:700;font-size:14px}
+.g-excellent{background:var(--good-soft);color:var(--good)}
+.g-good{background:var(--brand-soft);color:var(--brand-ink)}
+.g-pass{background:var(--warn-soft);color:var(--warn)}
+.g-fail{background:var(--bad-soft);color:var(--bad)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}
+.kpi{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi b{display:block;font-size:22px;line-height:1.2}
+.kpi span{font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:12px;color:var(--muted);font-weight:700;background:#f8fafc;white-space:nowrap}
+tbody tr:hover{background:#fbfdff}
+.bar{height:9px;background:#eef2f7;border-radius:99px;overflow:hidden;min-width:110px}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--brand)}
+.bar i.g-excellent{background:var(--good)}.bar i.g-good{background:var(--brand)}
+.bar i.g-pass{background:var(--warn)}.bar i.g-fail{background:var(--bad)}
+.short{color:var(--bad);font-weight:700}
+.diag{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.diag-box{border:1px solid var(--line);border-radius:11px;padding:14px 16px;background:#fbfcfe}
+.diag-box h4{margin:0 0 8px;font-size:14px}
+.diag-box ul{margin:0;padding-left:18px;font-size:13px;color:#3b4a59;max-height:230px;overflow:auto}
+.diag-box li{margin:5px 0}
+.report-text{width:100%;min-height:210px;border:1px solid var(--line);border-radius:10px;
+  padding:13px 14px;font-family:ui-monospace,SFMono-Regular,Consolas,"WenQuanYi Micro Hei",monospace;
+  font-size:12.5px;line-height:1.7;background:#fbfcfe;resize:vertical;outline:none}
+
+/* ---------- 依据页 ---------- */
+.doc-layout{display:grid;grid-template-columns:212px 1fr;gap:22px;align-items:start}
+.toc{position:sticky;top:78px;background:#fff;border:1px solid var(--line);
+  border-radius:12px;padding:14px;box-shadow:var(--shadow)}
+.toc b{font-size:12px;color:var(--muted);display:block;margin-bottom:9px;letter-spacing:1px}
+.toc a{display:block;padding:6px 9px;border-radius:7px;font-size:13px;color:#3b4a59}
+.toc a:hover{background:var(--brand-soft);color:var(--brand-ink);text-decoration:none}
+.doc-body h2{scroll-margin-top:88px}
+.doc-body h3{scroll-margin-top:88px}
+.doc-body h4{margin:16px 0 6px;font-size:14px}
+.doc-body ul,.doc-body ol{padding-left:20px;margin:8px 0}
+.doc-body li{margin:5px 0}
+.formula{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f7faff;
+  border:1px dashed #c9dcfa;border-radius:10px;padding:18px 20px;margin:14px 0;
+  font-size:19px;color:var(--brand-ink);font-family:Georgia,"Times New Roman",serif}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.4}
+.frac .num{padding:0 8px 5px}
+.frac .den{padding:5px 8px 0;border-top:1.5px solid var(--brand-ink)}
+.formula sub{font-size:.65em}
+.legend{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 20px;font-size:13px;margin-top:10px}
+.legend div{border-bottom:1px dotted var(--line);padding:5px 0}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;
+  background:var(--brand-soft);color:var(--brand-ink);margin-right:6px}
+.tag.grey{background:#eef2f7;color:var(--muted)}
+.ref{font-size:13px;color:#3b4a59;padding-left:26px;text-indent:-26px;margin:9px 0}
+.callout{border-left:3px solid var(--good);background:var(--good-soft);
+  padding:12px 15px;border-radius:0 9px 9px 0;margin:14px 0;font-size:13.5px}
+.callout.warn{border-left-color:var(--warn);background:var(--warn-soft)}
+
+@media (max-width:980px){
+  .meta-grid{grid-template-columns:repeat(2,1fr)}
+  .controls{grid-template-columns:1fr 1fr;gap:10px;padding-left:0}
+  .controls .c-score{grid-column:1/-1}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .diag{grid-template-columns:1fr}
+  .doc-layout{grid-template-columns:1fr}
+  .toc{position:static;display:flex;flex-wrap:wrap;gap:4px}
+  .toc b{width:100%}
+  .legend{grid-template-columns:1fr}
+}
+@media print{.topbar,.dim-toolbar,.btn-row,.toc{display:none!important}.doc-layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand"><b>可用性测评量表 · 修订版</b><span>11 维度 / 140 条 · 在线评判</span></div>
+    <nav class="nav" id="nav">
+      <button type="button" data-view="survey" class="on">① 在线评判</button>
+      <button type="button" data-view="rubric">② 依据与标准</button>
+    </nav>
+    <div class="progress-pill" id="topProgress">已作答 <b>0</b> / 140</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ==================== 第一页：在线评判 ==================== -->
+<section class="view" id="view-survey">
+
+  <div class="card guide">
+    <h2>施测说明</h2>
+    <p class="sub">建议在用户完成一段真实任务后立即施测，按实际体验而不是理想状态评分；单次约需 25–40 分钟。</p>
+    <div class="quote">本量表用于评估一个数字产品的可用性。请针对你刚刚使用过的系统作答，按实际体验而不是理想状态评分。每一条均采用 1 至 7 分，1 表示完全不符合，7 表示完全符合。若该系统根本没有该条描述的功能，请在「具备」一栏选择「否」；若该条与你的任务场景无关，请在「适用」一栏选择「不适用」。</div>
+    <p class="sub">每条需填写：适用性、具备性、评分、权重（1–3，3 表示对本产品核心任务最关键），备注可选。带 <span class="tag-r">R</span> 的为反向条目，共 18 条，按题面原样打分，系统自动用 <b>8 − 原始评分</b> 换算。</p>
+  </div>
+
+  <div class="card">
+    <h2>评估信息</h2>
+    <p class="sub">用于生成报告抬头；与他人研究比较时应同时报告任务类型与各维度不适用比例。</p>
+    <div class="hr"></div>
+    <div class="meta-grid">
+      <div class="field"><label>产品 / 系统名称</label><input id="m-product" placeholder="例如：某某 App v3.2"></div>
+      <div class="field"><label>任务类型</label><input id="m-task" placeholder="例如：首次下单并完成支付"></div>
+      <div class="field"><label>评估者</label><input id="m-rater" placeholder="姓名 / 编号"></div>
+      <div class="field"><label>评估日期</label><input id="m-date" type="date"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>问卷正文（140 条）</h2>
+    <p class="sub">按维度分组。建议先通读一个维度，再回到该维度第一条开始作答，以减少锚定效应。每条均可独立判定，不依赖前一条结论。</p>
+    <div class="hr"></div>
+    <div class="dim-toolbar">
+      <button type="button" class="btn sm" id="btnExpand">展开全部</button>
+      <button type="button" class="btn sm" id="btnCollapse">收起全部</button>
+      <span class="spacer"></span>
+      <label class="sub" for="bulkW">批量权重</label>
+      <select id="bulkW" style="border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:#fff">
+        <option value="">不设置</option><option value="1">全部 1</option><option value="2">全部 2</option><option value="3">全部 3</option>
+      </select>
+      <button type="button" class="btn sm" id="btnBulk">应用</button>
+      <button type="button" class="btn sm" id="btnDemo">载入附录A示例</button>
+      <button type="button" class="btn sm" id="btnClear">清空作答</button>
+    </div>
+    <div id="dims"></div>
+    <div class="hr"></div>
+    <div class="btn-row">
+      <button type="button" class="btn primary" id="btnCalc">计算并生成报告</button>
+      <button type="button" class="btn" id="btnFillNA">未作答项统一标为「不适用」</button>
+      <button type="button" class="btn ghost" id="btnCsv">导出答题纸 CSV</button>
+      <span class="sub" id="calcHint">作答会自动保存在本机浏览器，刷新不丢失。</span>
+    </div>
+    <div id="calcNotice"></div>
+  </div>
+
+  <div class="card" id="resultCard" hidden>
+    <h2>评判结果</h2>
+    <div id="resultBody"></div>
+  </div>
+
+</section>
+
+<!-- ==================== 第二页：依据与标准 ==================== -->
+<section class="view" id="view-rubric" hidden>
+<div class="doc-layout">
+  <aside class="toc">
+    <b>目录</b>
+    <a href="#s-bg">1 修订背景与依据</a>
+    <a href="#s-structure">1.3 维度结构对照</a>
+    <a href="#s-admin">2.1 施测对象与指导语</a>
+    <a href="#s-standard">2.2 评判标准（逐条字段）</a>
+    <a href="#s-formula">2.3 指数计算与原理</a>
+    <a href="#s-interpret">2.4 结果解释与诊断信号</a>
+    <a href="#s-usage">2.5 三种使用方式</a>
+    <a href="#s-validity">4 信效度检验建议</a>
+    <a href="#s-answer">附录A 答题纸口径</a>
+    <a href="#s-refs">5 参考文献</a>
+  </aside>
+
+  <div class="doc-body">
+
+    <div class="card">
+      <h2 id="s-bg">1 修订背景与依据</h2>
+      <h3>1.1 原量表的适用边界</h3>
+      <p>普渡可用性测评量表（Purdue Usability Testing Questionnaire, PUTQ）由 Lin、Choong 与 Salvendy 于 1997 年提出。它依据人类信息加工理论，把可用性拆成八个维度——兼容性、一致性、灵活性、可学习性、最少动作、最少记忆负荷、感知限制与用户引导，共 100 条，采用 1 至 7 分评分，并以加权公式折算为 0 至 100 的可用性指数。这一结构的长处是维度清晰、可追溯到具体的人因学原则，至今仍是少数能给出分维度诊断的量表之一。</p>
+      <p>但它的适用前提已被技术环境改写。原作者在结论部分明确说明，量表条目主要针对「需要视觉显示、键盘与鼠标的传统图形界面软件」，在评价以声音、语音、动画、视频和笔输入为主的交互系统时应谨慎使用；同时承认量表只覆盖传统可用性维度，未纳入愉悦感等体验因素。1997 年的个人计算机是单机、单屏、以鼠标为主、以桌面应用为中心的；今天的主要界面则是手机、平板、折叠屏与车机，输入以触控、语音、扫码和传感器为主，服务分布在多个应用与多个设备之间，并且越来越多地把决策交给推荐算法与生成式模型。</p>
+      <p>原有条目所描述的对象——窗口、菜单、光标、功能键、命令语言——在移动端大量消失，而原量表完全没有涉及权限、弱网、中断恢复、隐私默认值、AI 输出可信度等当代用户真正会遇到的判断。</p>
+      <div class="callout"><b>本次修订不是替换，而是迁移：</b>把同一套人因学骨架迁移到新的交互条件下——保留可追溯到 PUTQ 的八个维度及其问句式、可观察的条目写法，删除主要依赖桌面隐喻的表述，并补充三个当代维度。</div>
+
+      <h3>1.2 三条修订原则</h3>
+      <ol>
+        <li><b>保持结构可追溯。</b>原八个维度全部保留，每个维度仍对应人类信息加工的感知、认知、动作三个阶段，便于与 1997 年的研究结果、以及其他采用同一框架的研究相互对照。凡删除的条目，其考察意图都尽可能并入同维度的新条目，而不是整段丢弃。</li>
+        <li><b>把条目写成可观察的行为问句。</b>每条都指向一个能在真实使用中被判定「有」或「没有」的设计特征，避免「界面是否美观」「体验是否良好」这类无法证伪的表述。每一条都可以由评估者根据界面事实作答，而不只是凭喜好打分。</li>
+        <li><b>覆盖移动与智能场景的失败模式。</b>新增条目集中在三类过去不存在或不被重视的失败：设备与情境造成的失败（单手、弱网、打断、电量），权利与信任造成的失败（权限、默认设置、注销、扣费），以及自动化造成的失败（AI 越界、不可解释、无法回退、责任不清）。</li>
+      </ol>
+
+      <h3 id="s-structure">1.3 修订后的维度结构（表1）</h3>
+      <p>修订版共 <b>11 个维度、140 条</b>。前八个维度沿用原名称并扩充条目，后三个维度为新增。</p>
+      <table>
+        <thead><tr><th>原维度（条目数）</th><th>新维度（条目数）</th><th>主要修订内容</th></tr></thead>
+        <tbody>
+          <tr><td>兼容性（5）</td><td>兼容性与设备适配（12）</td><td>由键鼠操作扩展到触控手势、输入方式、设备形态与跨端迁移</td></tr>
+          <tr><td>一致性（17）</td><td>一致性（14）</td><td>增加主题模式、跨端、多角色与 AI 内容标注的一致性</td></tr>
+          <tr><td>灵活性（14）</td><td>灵活性（14）</td><td>增加通知配置、离线降级、无障碍替代与专注模式</td></tr>
+          <tr><td>可学习性（7）</td><td>可学习性（12）</td><td>增加渐进披露、就地示例、搜索助学与 AI 能力说明</td></tr>
+          <tr><td>最少动作（13）</td><td>最少动作（13）</td><td>增加扫码、生物识别、自动填充、跨应用跳转与单手触达</td></tr>
+          <tr><td>最少记忆负荷（15）</td><td>最少记忆负荷（13）</td><td>增加中断恢复、状态持续可见与 AI 摘要</td></tr>
+          <tr><td>感知限制（17）</td><td>感知限制（14）</td><td>增加小屏阅读、触控热区、对比度、动效与多通道反馈</td></tr>
+          <tr><td>用户引导（12）</td><td>用户引导（15）</td><td>增加权限说明、空状态、恢复路径、AI 不确定性与敏感操作确认</td></tr>
+          <tr><td>—</td><td>情境与移动适应性（11）</td><td>新增。覆盖单手、弱网、打断、电量、折叠屏与公共场合隐私</td></tr>
+          <tr><td>—</td><td>隐私、安全与信任（10）</td><td>新增。覆盖最小必要收集、默认保护、脱敏展示与注销可达</td></tr>
+          <tr><td>—</td><td>智能与自动化透明度（12）</td><td>新增。覆盖 AI 能力边界、可解释、可覆盖、内容标识与责任归属</td></tr>
+          <tr><td><b>合计（100）</b></td><td><b>合计（140）</b></td><td>净增 40 条，其中新增维度 33 条、原有维度扩充 7 条</td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn"><b>为什么新增维度仍属「可用性」而非体验偏好：</b>三个维度的共同点在于都直接决定用户能否安全、可预期地完成任务——权限申请时机不当会让任务在第一步失败；弱网未降级会让任务在中途失败；AI 无法回退会让任务在最后一步产生不可撤销的后果。</div>
+    </div>
+
+    <div class="card">
+      <h2 id="s-admin">2.1 施测对象与指导语</h2>
+      <p>本量表适用于网页、移动应用、小程序、桌面软件、智能终端界面，以及包含推荐、语音助手或生成式 AI 功能的系统。建议在用户完成一段真实任务后立即施测，而不是让用户凭印象回忆。单次施测约需 25 至 40 分钟，不宜在无报酬、无实验约定的场合要求用户独立完成全部 140 条。</p>
+      <p class="sub">指导语：本量表用于评估一个数字产品的可用性。请针对你刚刚使用过的系统作答，按实际体验而不是理想状态评分。每一条均采用 1 至 7 分，1 表示完全不符合，7 表示完全符合。若该系统根本没有该条描述的功能，请在「是否具备」一栏选择「否」；若该条与你的任务场景无关，请选择「不适用」。</p>
+
+      <h2 id="s-standard" style="margin-top:26px">2.2 评判标准：每条必须完成的判断</h2>
+      <table>
+        <thead><tr><th>字段</th><th>取值</th><th>含义与规则</th></tr></thead>
+        <tbody>
+          <tr><td><b>适用性 I<sub>i</sub></b></td><td>适用 = 1 / 不适用 = 0</td><td>该条描述的情境是否属于本次评估的任务范围。<b>不适用时该条整体退出计算</b>，既不进分子也不进分母。</td></tr>
+          <tr><td><b>具备性</b></td><td>是 = 1 / 否 = 0</td><td>系统是否提供了该条所要求的设计特征。<b>适用但不具备时记缺失罚分 p<sub>i</sub> = 1</b>，表示这里存在一个确定的可用性缺陷；此时题面评分仅作记录。</td></tr>
+          <tr><td><b>评分</b></td><td>1 – 7 分</td><td>在具备的前提下评价其实现质量：1 = 完全不符合，7 = 完全符合。反向条目按题面原样填写，由统计环节换算。</td></tr>
+          <tr><td><b>权重 w<sub>i</sub></b></td><td>1 / 2 / 3</td><td>评估者为该条赋予的重要性，3 表示该条对本产品的核心任务最关键。</td></tr>
+          <tr><td><b>备注</b></td><td>自由文本</td><td>记录可观察的事实依据，例如「拖拽反馈有延迟」「深色模式语义色反转」。</td></tr>
+        </tbody>
+      </table>
+      <h4>反向条目</h4>
+      <p>题末以 <span class="tag-r">R</span> 标注，共 <b>18 条</b>（第 12、14、18、22、45、60、63、76、88、90、92、93、101、112、118、123、128、135 条），用于抑制一律给高分的默认同意倾向。</p>
+      <div class="formula" style="font-size:17px">换算分 s<sub>i</sub> = 8 − 原始评分　<span class="sub" style="font-family:inherit">（换算后方向与其他条目一致，再进入指数公式）</span></div>
+      <div class="callout warn">这一处理方式沿用原量表的计分逻辑，目的是<b>避免用「没有这个功能」掩盖缺陷</b>，也<b>避免用「用不到这个功能」稀释得分</b>：缺失要罚，不相关要剔除。</div>
+      <div class="callout"><b>关于「适用但不具备」的落地口径：</b>文档规定评分是在<b>具备的前提下</b>评价实现质量，附录A示例仍为不具备的条目保留了题面评分。本网站据此把题面评分仅作为事实记录，该条按实现质量最低（s<sub>i</sub> = 1）计入，与 p<sub>i</sub> = 1 相抵后净贡献 0。这样既守住「确定缺陷不得分」，也避免反向条目因题面低分被换算成虚高得分。公式本身未作改动。</div>
+    </div>
+
+    <div class="card">
+      <h2 id="s-formula">2.3 指数计算与原理</h2>
+      <p>设第 i 条的换算评分为 s<sub>i</sub>，适用性为 I<sub>i</sub>，缺失罚分为 p<sub>i</sub>，权重为 w<sub>i</sub>，则可用性指数为：</p>
+      <div class="formula">
+        <span>Index = </span>
+        <span class="frac"><span class="num">Σ w<sub>i</sub> ( s<sub>i</sub> − p<sub>i</sub> )</span><span class="den">7 × Σ w<sub>i</sub> × I<sub>i</sub></span></span>
+        <span> × 100</span>
+      </div>
+      <div class="legend">
+        <div><b>s<sub>i</sub></b>　取值 1–7（反向条目已换算）</div>
+        <div><b>p<sub>i</sub></b>　取值 0 或 1（适用但不具备 = 1）</div>
+        <div><b>I<sub>i</sub></b>　取值 0 或 1（不适用 = 0）</div>
+        <div><b>w<sub>i</sub></b>　取值 1–3</div>
+      </div>
+      <p style="margin-top:14px"><b>原理：</b>分子为加权后的实际得分，分母为同一批条目在满分状态下的加权总分，比值乘以 100 即为 0 至 100 的指数。「不适用」条目 I<sub>i</sub> = 0，在分母中自然不贡献，同时也不进分子；「适用但不具备」条目在分子中被扣掉一份权重，使确定的缺陷不会被高分掩盖。</p>
+      <p><b>维度分：</b>用同一公式，只代入该维度的条目，从而得到 11 个分维度得分。分维度得分用于定位问题，总指数用于横向比较。</p>
+      <div class="callout"><b>报告口径：</b>若需与他人研究比较，应同时报告总指数、11 个维度分、各维度的不适用比例，以及样本的任务类型。仅报告总指数会丢失诊断信息，也无法判断差异来自真实缺陷还是条目适用性不同。</div>
+      <p class="sub">本网站的实现口径：选择「适用」时评分默认预置为 4、权重默认 2，请按实际体验调整；选择「适用 + 不具备」时评分停用、系统自动记 p<sub>i</sub> = 1 且该条净贡献 0；选择「不适用」时具备性与评分停用并清空，该条整体退出计算。未选择适用性的条目视为「未作答」，同样退出计算并在报告中标注为试算。</p>
+    </div>
+
+    <div class="card">
+      <h2 id="s-interpret">2.4 结果解释（表2，暂定）</h2>
+      <p class="sub">该区间是参照系统可用性量表（SUS）的经验分档思路迁移而来的<b>工作假设</b>，尚未经本量表的常模验证，正式研究使用前应以本地样本分布重新标定，不应把它当作行业标准引用。</p>
+      <table>
+        <thead><tr><th>等级</th><th>指数区间</th><th>含义</th><th>建议动作</th></tr></thead>
+        <tbody>
+          <tr><td><span class="grade g-excellent">优秀</span></td><td>85–100</td><td>绝大多数可用性问题已解决，可作为同类产品参照</td><td>保持现状，沉淀为设计规范</td></tr>
+          <tr><td><span class="grade g-good">良好</span></td><td>70–84</td><td>整体可用，存在局部摩擦</td><td>针对最低分维度做定向优化</td></tr>
+          <tr><td><span class="grade g-pass">及格</span></td><td>55–69</td><td>能完成核心任务，但学习成本或出错率偏高</td><td>列入下一轮迭代必改清单</td></tr>
+          <tr><td><span class="grade g-fail">不及格</span></td><td>0–54</td><td>核心任务难以顺利完成，误操作与流失风险高</td><td>暂停扩展功能，优先重构关键流程</td></tr>
+        </tbody>
+      </table>
+      <h3>两个诊断信号</h3>
+      <ol>
+        <li><b>结构性短板：</b>某维度分比总指数低 10 分以上，说明该维度是结构性短板，应优先处理，而不是在总分较高的维度上继续打磨。</li>
+        <li><b>关键且失效：</b>权重为 3 且评分不超过 3 的条目，属于「关键且失效」，无论总分如何都应立即修复。本网站按<b>换算后方向一致的评分</b>判定（避免反向条目高分被漏判），并把「适用但不具备」的缺失项一并列入。</li>
+      </ol>
+
+      <h2 id="s-usage" style="margin-top:26px">2.5 三种使用方式</h2>
+      <table>
+        <thead><tr><th>方式</th><th>用途</th><th>规则</th></tr></thead>
+        <tbody>
+          <tr><td><b>全版 140 条</b></td><td>正式评估、版本对照与学术研究</td><td>能给出完整的分维度诊断。本网站即全版。</td></tr>
+          <tr><td><b>场景版</b></td><td>产品迭代中的快速诊断</td><td>按产品形态裁剪明显不适用的维度，例如纯桌面后台系统可整段跳过「情境与移动适应性」，但保留其余十个维度，<b>且不得删减核心八维度中的任何一个</b>。裁剪后应在报告中注明剔除的维度与理由，否则分数不可比。</td></tr>
+          <tr><td><b>短版 22 条</b></td><td>大规模问卷或日常监测</td><td>建议在完成信效度检验后，从每个维度保留 2 条载荷最高且内容不重复的条目。未完成验证之前，不宜直接把任意子集当作独立短版使用，因为其信度与维度结构均未经检验。</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2 id="s-validity">4 信效度检验建议</h2>
+      <p class="sub">一套新条目在通过检验之前只是候选条目。以下为可直接执行的最小检验方案，供学位论文或产品研究使用；样本量与统计指标均为该领域的常规做法，不是本量表的既有结论。</p>
+      <h3>4.1 内容效度与认知访谈</h3>
+      <ul>
+        <li>请 8 至 12 名熟悉人机交互或可用性工程的专家逐条评定「该条与所测维度是否相关」，采用 4 点相关性评定；条目水平内容效度指数 <b>I-CVI ≥ 0.78</b>，量表水平均值 <b>S-CVI/Ave ≥ 0.90</b>。低于阈值的条目应改写或删除，并记录理由。</li>
+        <li>随后进行 15 至 20 名目标用户的认知访谈，让用户用自己的话说出每条在问什么并指出歧义。同一条目若有八成以上用户理解一致，视为表述清晰；否则应改写。这一步对新增的三个维度尤其重要，因为「透明度」「可预期」这类词在普通用户口中常有不同含义。</li>
+      </ul>
+      <h3>4.2 项目分析与结构效度</h3>
+      <ul>
+        <li>预测试 30 至 50 人，检查三条淘汰信号：某条「不适用」比例超过 20%（适用条件过窄）；某条有超过一半作答集中在同一档（区分度不足）；某条与所在维度总分相关低于 0.40，或删除后该维度信度反而上升（拖累维度）。出现上述情况优先改写，而不是直接删除。</li>
+        <li>正式施测时条目与被试比至少 1:5，即 140 条对应不少于 <b>700 份</b>有效样本；若按维度分别做探索性因子分析，每个维度还需保证 120 至 150 份。</li>
+        <li>样本随机对半，一半做探索性因子分析（EFA），一半做验证性因子分析（CFA）。探索阶段要求 KMO 不低于 0.80、Bartlett 检验显著、抽取 11 个因子并解释至少 60% 的总变异；验证阶段要求卡方自由度比小于 3、CFI 与 TLI 不低于 0.90、RMSEA 与 SRMR 不大于 0.08。若某维度条目大量跨因子负载，应回到条目层面判断是表述问题还是维度本身应合并。</li>
+      </ul>
+      <h3>4.3 信度与效标关联效度</h3>
+      <ul>
+        <li><b>信度：</b>总量表 Cronbach's α 不低于 0.90，各维度不低于 0.70；间隔 2 至 4 周重测，组内相关系数不低于 0.75。α 过高（例如超过 0.96）往往意味着条目冗余，应检查语义重复。</li>
+        <li><b>效标：</b>建议同时施测 SUS 或 UEQ-S，并记录客观指标：任务完成率、任务完成时间、错误次数与求助次数。预期总指数与 SUS 呈中高度正相关，与任务完成时间呈负相关；若相关过低，说明量表测的是偏好而非可用性。</li>
+        <li><b>区分效度：</b>可用 UMUX-Lite 检验，若两者相关接近 0.90，则需讨论是否重复测量了同一构念。</li>
+        <li><b>跨设备测量等价性：</b>分别收集手机、平板与网页三组样本，依次检验形态等价、度量等价与标量等价，以 <b>ΔCFI 不超过 0.01</b> 为可接受。若不等价，说明同一条目在不同设备上含义不同，应分设备建立常模，而不是直接比较总分。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2 id="s-answer">附录A 答题纸口径</h2>
+      <p>答题纸按条目编号逐行填写，六个字段缺一不可：「适用」填 1 或 0，「具备」填是或否，「评分」填 1 至 7，「权重」填 1 至 3，另含题号与备注。反向条目已在其编号后标注 R，<b>评分仍按用户看到的题面填写，由统计环节换算</b>。</p>
+      <p>统计时先换算反向条目，再按 2.3 节公式计算总指数与 11 个维度分。若使用电子表格，建议把「适用」「具备」「权重」作为独立列，<b>避免把「不适用」与「缺失」合并成同一个空白单元格</b>，否则罚分无法区分。本网站导出的 CSV 已把这两类状态分开记录。</p>
+      <p class="sub">示例（附录A 表A.1 前若干条）：第 1 条 适用1/是/6/权重2；第 2 条 适用1/是/5/权重3「拖拽反馈有延迟」；第 12(R) 条 适用1/否/2/权重2「跨端逻辑差异大」；第 93(R) 条 适用1/否/1/权重3「错误提示仅显示失败」；第 119 条 适用0「不适用：本次任务未涉及权限」。第一页「载入附录A示例」按钮可直接复现这组数据。</p>
+
+      <h2 id="s-refs" style="margin-top:26px">5 参考文献</h2>
+      <p class="ref">[1] LIN H X, CHOONG Y Y, SALVENDY G. A proposed index of usability: a method for comparing the relative usability of different software systems[J]. Behaviour &amp; Information Technology, 1997, 16(4/5): 267-278.</p>
+      <p class="ref">[2] BROOKE J. SUS: a “quick and dirty” usability scale[M]//JORDAN P W, THOMAS B, WEINSBERG B A, et al. Usability Evaluation in Industry. London: Taylor &amp; Francis, 1996: 189-194.</p>
+      <p class="ref">[3] ISO. Ergonomics of human-system interaction — Part 11: Usability: Definitions and concepts: ISO 9241-11:2018[S]. Geneva: International Organization for Standardization, 2018.</p>
+      <p class="ref">[4] W3C. Web Content Accessibility Guidelines (WCAG) 2.2[S/OL]. (2023-10)[2026-11-22]. https://www.w3.org/TR/WCAG22/.</p>
+      <p class="ref">[5] SAURO J, LEWIS J R. Quantifying the User Experience: Practical Statistics for User Research[M]. 2nd ed. Cambridge: Morgan Kaufmann, 2016.</p>
+      <p class="ref">[6] APPLE INC. Human Interface Guidelines[EB/OL]. [2026-11-22]. https://developer.apple.com/design/human-interface-guidelines/.</p>
+      <p class="ref">[7] GOOGLE. Material Design 3[EB/OL]. [2026-11-22]. https://m3.material.io/.</p>
+    </div>
+
+  </div>
+</div>
+</section>
+
+</main>
+
+<!-- ==================== 量表数据 ==================== -->
+<script id="scale-data" type="application/json">
+{
+ "dimensions":[
+  {"id":1,"name":"兼容性与设备适配","orig":"兼容性（5）","note":"由键鼠操作扩展到触控手势、输入方式、设备形态与跨端迁移"},
+  {"id":2,"name":"一致性","orig":"一致性（17）","note":"增加主题模式、跨端、多角色与 AI 内容标注的一致性"},
+  {"id":3,"name":"灵活性","orig":"灵活性（14）","note":"增加通知配置、离线降级、无障碍替代与专注模式"},
+  {"id":4,"name":"可学习性","orig":"可学习性（7）","note":"增加渐进披露、就地示例、搜索助学与 AI 能力说明"},
+  {"id":5,"name":"最少动作","orig":"最少动作（13）","note":"增加扫码、生物识别、自动填充、跨应用跳转与单手触达"},
+  {"id":6,"name":"最少记忆负荷","orig":"最少记忆负荷（15）","note":"增加中断恢复、状态持续可见与 AI 摘要"},
+  {"id":7,"name":"感知限制","orig":"感知限制（17）","note":"增加小屏阅读、触控热区、对比度、动效与多通道反馈"},
+  {"id":8,"name":"用户引导","orig":"用户引导（12）","note":"增加权限说明、空状态、恢复路径、AI 不确定性与敏感操作确认"},
+  {"id":9,"name":"情境与移动适应性","orig":"—（新增）","note":"覆盖单手、弱网、打断、电量、折叠屏与公共场合隐私"},
+  {"id":10,"name":"隐私、安全与信任","orig":"—（新增）","note":"覆盖最小必要收集、默认保护、脱敏展示与注销可达"},
+  {"id":11,"name":"智能与自动化透明度","orig":"—（新增）","note":"覆盖 AI 能力边界、可解释、可覆盖、内容标识与责任归属"}
+ ],
+ "items":[
+  [1,1,"页面的滑动方向与内容移动方向是否一致，符合用户对滚动、翻页与返回的直觉？",0],
+  [2,1,"点击、长按、拖拽与双指缩放等触控动作的反馈，是否与真实世界中的同类动作相符？",0],
+  [3,1,"界面使用的隐喻（收件箱、购物车、相册、文件夹、时间轴）是否与目标用户熟悉的现实模型或主流产品模型一致？",0],
+  [4,1,"需要输入时，系统提供的输入方式（九宫格、全键盘、语音、手写、扫码）是否与用户习惯和当前场景匹配？",0],
+  [5,1,"功能复杂度是否与目标用户的技能水平匹配，新手不被专业术语挡住，熟手不被强制走新手流程？",0],
+  [6,1,"控件位置与交互逻辑是否遵循目标平台的惯例，例如返回位置、系统手势与分享面板？",0],
+  [7,1,"语言、单位、货币、日期、姓名与地址的表达，是否符合目标用户的语言文化与地区习惯？",0],
+  [8,1,"设备形态改变（横竖屏、折叠屏展开、平板、车机、手表）后，布局与操作方式是否仍符合预期？",0],
+  [9,1,"登录、支付、预约与提交等关键流程的步骤顺序，是否与用户对该类事务的心理脚本一致？",0],
+  [10,1,"权限、通知与定位等系统级请求出现的时机，是否符合用户此刻的任务预期，而非一打开就索要？",0],
+  [11,1,"声音、震动与灯效等非视觉反馈是否与事件性质匹配，成功提示轻、告警提示重，且不与系统其他提示混淆？",0],
+  [12,1,"同一功能在网页、应用、小程序与桌面端的操作逻辑是否明显不同，用户跨端使用时需要重新适应？",1],
+
+  [13,2,"同一功能在全产品中是否只有一个名称，不出现“收藏”“喜欢”“关注”混指同一动作？",0],
+  [14,2,"同类操作是否使用了含义相近但不同的词，例如“删除”“移除”“清除”混用在同一语义层级？",1],
+  [15,2,"颜色编码是否符合行业与平台惯例，红示警、绿示成功、黄示注意，而非自创反义用法？",0],
+  [16,2,"图标风格、线条粗细、圆角与留白是否属于同一套视觉语言，不混用多套图标库？",0],
+  [17,2,"相同层级的信息是否出现在相同位置，例如页面标题、返回、主操作按钮与错误提示？",0],
+  [18,2,"同类操作是否随机采用不同反馈方式，让用户难以形成稳定预期？",1],
+  [19,2,"数字、日期、金额、百分比与单位的格式是否全站统一，千分位与小数位不混用？",0],
+  [20,2,"数据展示格式是否与录入要求一致，输入什么格式，列表与详情就显示什么格式？",0],
+  [21,2,"列表页、详情页与设置页的信息架构是否遵循同一组织逻辑，例如同一维度分组与同一排序规则？",0],
+  [22,2,"深色模式与浅色模式之间是否存在语义色反转、层级混乱等不一致？",1],
+  [23,2,"加载、空状态、错误与无权限四类页面是否使用统一的版式与文案语气？",0],
+  [24,2,"系统返回手势、通知样式、权限弹窗与分享面板是否遵循宿主平台规范？",0],
+  [25,2,"管理员、普通成员与访客看到的同名功能，行为与权限边界是否一致可预期？",0],
+  [26,2,"AI 生成内容与人工内容的标注方式、排版与可编辑性是否遵循同一套规范？",0],
+
+  [27,3,"用户能否按需调整字号、行距、界面密度与主题，包括浅色、深色与护眼模式？",0],
+  [28,3,"用户能否按需配置通知的类型、频率、渠道与免打扰时段？",0],
+  [29,3,"是否为熟练用户提供高效路径，例如快捷键、快捷手势、快捷指令与直达入口，且不干扰新手？",0],
+  [30,3,"是否支持批量与模板化操作，例如批量选择、批量编辑、保存为模板与复用上次设置？",0],
+  [31,3,"用户能否自定义首页、工作台或常用功能的排序与显示？",0],
+  [32,3,"引导、推荐与自动播放是否可跳过、可关闭，并可在之后重新开启？",0],
+  [33,3,"是否支持多任务与中断恢复，例如分屏、小窗、切后台后回到原位置与跨应用复制粘贴？",0],
+  [34,3,"是否支持跨设备接续，手机开始、平板或网页继续，进度与草稿能够同步？",0],
+  [35,3,"弱网或离线时是否提供可用降级路径，例如离线缓存、稍后重试与草稿本地保存？",0],
+  [36,3,"折叠屏、横竖屏、分屏与悬浮窗下，布局能否自适应而不丢失功能？",0],
+  [37,3,"是否提供无障碍替代路径，例如字体放大、屏幕朗读、高对比、减弱动效与语音操作？",0],
+  [38,3,"用户能否按自己的任务选择数据视图（列表、卡片、日历、地图）与排序筛选组合？",0],
+  [39,3,"用户能否自定义字段、标签、分类或视图，而不必求助于开发者？",0],
+  [40,3,"是否提供“少打扰”“专注”等模式，让用户自行决定信息涌入的强度？",0],
+
+  [41,4,"新用户能否在不看说明书的情况下完成一次有价值的核心任务？",0],
+  [42,4,"界面用语是否为用户语言而非技术语言，未解释的术语是否被避免？",0],
+  [43,4,"图标与按钮是否自解释，或在长按、悬停时显示名称？",0],
+  [44,4,"是否提供就地示例、模板或预设，让用户从“照着改”开始而不是面对空白？",0],
+  [45,4,"新手引导是否只能顺序看完，无法跳过或回看？",1],
+  [46,4,"错误提示是否包含“错在哪、为什么、怎么改”，让用户能从错误中学会正确做法？",0],
+  [47,4,"帮助是否就地可及，在需要的页面直接解释，而不是跳转到独立帮助中心？",0],
+  [48,4,"复杂功能是否采用渐进披露，先给核心能力，进阶功能按需展开？",0],
+  [49,4,"是否提供任务级示范，例如短视频、动图或可交互教程，覆盖高频与高风险任务？",0],
+  [50,4,"搜索能否承担学习功能，模糊描述也能找到功能、设置或帮助？",0],
+  [51,4,"AI 与自动化功能在使用前是否说明其能力、边界与需要用户确认的事项？",0],
+  [52,4,"换设备或升级版本后，用户是否无需重新学习，位置、习惯与个性化设置得以保留？",0],
+
+  [53,5,"搜索、下单、提交、打卡与报销等核心任务，能否在三次主要操作内完成？",0],
+  [54,5,"表单是否支持自动填充、扫码识别、拍照识别与粘贴识别，减少手工输入？",0],
+  [55,5,"是否提供一次性授权登录，例如本机号码、生物识别与第三方账号，避免反复输入账号密码？",0],
+  [56,5,"地址、发票抬头、联系人与支付方式等常用信息，是否被记住并可一键选用？",0],
+  [57,5,"是否合理提供默认值或智能预填，并让用户一眼看出哪些是系统填的？",0],
+  [58,5,"智能建议是否以“一次确认”落地，推荐后一键采用，而不是让用户自己搬运信息？",0],
+  [59,5,"多步流程是否合并或后台化，例如注册与登录合并、支付与开票合并、上传后自动处理？",0],
+  [60,5,"返回、取消与撤销是否藏得很深，用户需要多次尝试才能找到？",1],
+  [61,5,"跨应用跳转是否被最小化，不强制跳浏览器、不强制下载另一个应用？",0],
+  [62,5,"分享、保存、复制与导出是否一步可达，例如长按复制与系统分享面板？",0],
+  [63,5,"高频操作是否必须双手或反复换手才能触达？",1],
+  [64,5,"重复性任务是否有“再来一次”“按上次设置”的快捷入口？",0],
+  [65,5,"语音、手势与快捷指令等替代输入是否覆盖高频场景，减少逐层点击？",0],
+
+  [66,6,"完成当前任务所需的信息，是否在需要的那一刻可见，而不必记住上一页的内容？",0],
+  [67,6,"验证码、订单号与金额等关键信息是否支持一键复制或自动带入，无需抄写？",0],
+  [68,6,"跨步骤填写的内容是否被保留，返回上一步不会丢失已填数据？",0],
+  [69,6,"当前位置、进度与剩余步骤是否始终可见？",0],
+  [70,6,"是否用“识别”代替“回忆”，例如最近使用、历史记录、收藏与搜索建议？",0],
+  [71,6,"密码、密钥与一次性验证是否由系统安全管理，用户无需自行记忆？",0],
+  [72,6,"切到后台、接电话或断网后返回，是否回到原来的位置与输入状态？",0],
+  [73,6,"长文档、长列表与复杂表格是否提供摘要、目录、锚点或折叠，避免用户记住整体结构？",0],
+  [74,6,"图标是否配有文字标签，避免用户必须记住图标含义？",0],
+  [75,6,"隐藏手势与隐藏入口是否有可见线索，用户不必靠记忆发现？",0],
+  [76,6,"关键状态是否一闪而过，用户难以确认是否保存、同步或支付成功？",1],
+  [77,6,"AI 是否提供要点摘要与“上次说到哪里”，减少用户回看长对话的成本？",0],
+  [78,6,"多账号、多项目切换时，当前身份与数据范围是否被明确标识？",0],
+
+  [79,7,"正文字号与行距在主流手机尺寸上是否无需放大即可舒适阅读？",0],
+  [80,7,"可点击元素的触控热区是否足够大，不小于 44×44 点或 48×48 密度独立像素，且相邻元素不易误触？",0],
+  [81,7,"文字与背景的对比度是否达到 WCAG AA 要求，正文 4.5:1、大字 3:1，浅色与深色模式均适用？",0],
+  [82,7,"强光户外与暗光夜间场景下，内容是否仍然可读，亮度、对比与反光是否被考虑？",0],
+  [83,7,"是否避免仅用颜色传递关键信息，同时使用文字、图标、形状或位置？",0],
+  [84,7,"红绿色觉与蓝黄色觉异常的用户，能否区分全部状态标识与图表？",0],
+  [85,7,"动画与转场是否克制，是否尊重系统“减弱动态效果”设置，不引发眩晕？",0],
+  [86,7,"关键反馈是否有多通道冗余，视觉、震动与声音并用，且各通道可分别关闭？",0],
+  [87,7,"小尺寸图标、角标与细线在低分辨率屏和折叠屏外屏上是否仍可辨认？",0],
+  [88,7,"手机端关键内容是否必须横向滚动才能看全？",1],
+  [89,7,"屏幕边缘手势、全面屏手势与应用内滑动之间是否存在冲突与误触？",0],
+  [90,7,"弹窗、浮层、悬浮球与横幅是否遮挡关键内容或主操作按钮？",1],
+  [91,7,"系统字体放大到 200% 时，布局是否仍然完整可用，不截断、不重叠？",0],
+  [92,7,"视频与音频是否缺少字幕与倍速，使听障用户或在嘈杂环境中难以使用？",1],
+
+  [93,8,"错误提示是否只给出“操作失败”，而不说明原因与下一步？",1],
+  [94,8,"错误发生时是否保留用户已输入的数据，不需要重填？",0],
+  [95,8,"是否提供撤销与重做，并覆盖删除、发送与支付等不可逆操作？",0],
+  [96,8,"取消、返回与关闭是否始终明确可见，且不会造成数据丢失？",0],
+  [97,8,"加载、上传与处理中是否有可感知的进度与预计时间，超时是否有解释？",0],
+  [98,8,"空状态是否说明“这里为什么空”以及“如何产生第一条内容”？",0],
+  [99,8,"申请相机、麦克风、定位与通讯录权限时，是否先说明用途与后果，再触发系统弹窗？",0],
+  [100,8,"在线或离线、同步中或失败、账号异常等系统状态是否持续可见并可自行处理？",0],
+  [101,8,"帮助与客服入口是否只在独立帮助中心，问题现场无法触达？",1],
+  [102,8,"AI 输出是否标注来源、更新时间与不确定性，并提示用户核实关键结论？",0],
+  [103,8,"删除账号、扣款、公开发布与授权他人等敏感操作，是否有清晰的二次确认与影响说明？",0],
+  [104,8,"出错后是否给出恢复路径，例如重试、换方式、找人工与提交反馈，而不是死路？",0],
+  [105,8,"推送是否可分级、可关闭、来源明确，且不在休息时段打扰？",0],
+  [106,8,"版本更新是否说明变化点与影响，而不只是“修复了一些问题”？",0],
+  [107,8,"是否提供面向低识字、听障、视障与老年用户的引导方式，例如图示、语音与简版说明？",0],
+
+  [108,9,"核心任务能否单手完成，主要控件是否位于拇指舒适区？",0],
+  [109,9,"在行走、通勤与拥挤场景中，是否容忍手抖、误触与短暂分心，例如大按钮与可回退设计？",0],
+  [110,9,"弱网、地铁、电梯与飞行模式下，是否仍能完成关键步骤，或明确告知失败原因？",0],
+  [111,9,"来电、消息或系统弹窗打断后，是否无缝恢复任务，而不是从头开始？",0],
+  [112,9,"是否长期后台驻留、频繁定位或加载高清资源，明显消耗电量与流量？",1],
+  [113,9,"横竖屏切换、折叠屏开合与连接外接屏时，是否保持上下文不丢失？",0],
+  [114,9,"夜间、驾驶、骑行与运动场景，是否有对应模式，例如大字号、语音与少操作？",0],
+  [115,9,"扫码、拍照、定位与近场通信等硬件功能失败时，是否提供手动备选路径？",0],
+  [116,9,"湿手、戴手套、贴膜或屏幕受损等真实条件下，操作是否仍可完成？",0],
+  [117,9,"公共场合使用时，是否保护屏幕敏感信息，例如金额、证件号与聊天预览？",0],
+  [118,9,"是否存在强制全屏、强制竖屏或强制常亮等打断用户当前场景的设计？",1],
+
+  [119,10,"是否只收集完成当前功能所必需的数据，并在使用时才申请权限？",0],
+  [120,10,"是否用可读语言说明收集了什么、用于什么、保存多久、与谁共享？",0],
+  [121,10,"隐私相关选项的默认值是否偏向保护用户，非必要不公开、不追踪？",0],
+  [122,10,"用户能否方便地查看、更正、导出与删除自己的数据，并找到注销入口？",0],
+  [123,10,"关键操作是否缺乏必要验证，或日常浏览被反复验证打断？",1],
+  [124,10,"支付、转账与订阅扣费前，是否清晰展示金额、周期、收款方与取消方式？",0],
+  [125,10,"是否对可疑链接、仿冒页面与异常登录给出及时且可操作的提醒？",0],
+  [126,10,"敏感信息是否默认脱敏，例如手机号、证件号、银行卡与地址，并支持临时查看？",0],
+  [127,10,"跳转第三方或嵌入外部服务时，是否明确告知数据将离开本产品？",0],
+  [128,10,"权限被拒绝后，功能是否直接死锁，不提供替代路径？",1],
+
+  [129,11,"使用 AI 或自动化前，是否说明其能力范围、适用场景与已知局限？",0],
+  [130,11,"AI 给出的建议或结论，是否提供可理解的依据或来源，而非只有结果？",0],
+  [131,11,"用户能否随时手动覆盖、关闭或回退自动化行为，并知道当前处于哪种模式？",0],
+  [132,11,"AI 生成或合成的内容是否被明确标识，避免被误认为人工内容或真实记录？",0],
+  [133,11,"涉及事实、金额、医疗与法律等高风险输出时，是否提示不确定性并建议人工复核？",0],
+  [134,11,"AI 出错时，是否有明确的责任说明、纠错入口与申诉通道？",0],
+  [135,11,"用户数据是否默认用于训练且难以退出，对话与记忆也难以清除？",1],
+  [136,11,"个性化推荐是否可解释，能回答“为什么给你看这个”，并可调整或重置？",0],
+  [137,11,"语音助手的唤醒方式、监听状态与误唤醒处理是否清晰可控？",0],
+  [138,11,"自动续费、自动扣款、自动发布与自动清理等行为，是否提前告知并可预演？",0],
+  [139,11,"模型或策略更新导致行为变化时，是否告知用户并给出适应期？",0],
+  [140,11,"多智能体协作时，用户是否知道“谁在做什么”，并能指定或中止？",0]
+ ]
+}
+</script>
+
+<script>
+(function(){
+"use strict";
+var DATA = JSON.parse(document.getElementById('scale-data').textContent);
+var DIMS = DATA.dimensions;
+var ITEMS = DATA.items.map(function(a){return {id:a[0],dim:a[1],text:a[2],reverse:!!a[3]};});
+var BY_ID = {}; ITEMS.forEach(function(it){BY_ID[it.id]=it;});
+var KEY = 'putq-revised-online-v1';
+var state = {answers:{}, meta:{}};
+
+function load(){
+  try{ var s = JSON.parse(localStorage.getItem(KEY)||'null');
+    if(s && s.answers){ state.answers = s.answers||{}; state.meta = s.meta||{}; }
+  }catch(e){}
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+function ans(id){ if(!state.answers[id]) state.answers[id]={}; return state.answers[id]; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function clamp(v,a,b){ v=Number(v); if(isNaN(v)) return a; return Math.min(b,Math.max(a,v)); }
+
+/* ---------- 渲染问卷 ---------- */
+function seg(field, id, opts, cur, disa){
+  var h = '<div class="seg'+(disa?' disa':'')+(field==='score'?' score':'')+'">';
+  opts.forEach(function(o){
+    h += '<button type="button" data-field="'+field+'" data-val="'+o[0]+'"'+
+         (String(cur)===String(o[0])?' class="on"':'')+'>'+o[1]+'</button>';
+  });
+  return h+'</div>';
+}
+function itemHTML(it){
+  var a = ans(it.id), ap = a.applicable, av = a.available, sc = a.score, w = a.weight||2;
+  var na = ap==='0', lock = (ap===undefined||na);
+  var miss = ap==='1' && av==='0';
+  var scoreVals = []; for(var i=1;i<=7;i++) scoreVals.push([i,i]);
+  var h = '<div class="item'+(ap===undefined?' incomplete':'')+'" data-id="'+it.id+'">';
+  h += '<div class="item-head"><span class="num">'+it.id+'</span><div class="q">'+esc(it.text)+'</div>'+
+       (it.reverse?'<span class="tag-r">R</span>':'')+
+       (miss?'<span class="tag-miss">缺失罚分 1</span>':'')+'</div>';
+  h += '<div class="controls">';
+  h += '<div><span class="ctrl-label">适用</span>'+seg('applicable',it.id,[['1','适用'],['0','不适用']],ap,false)+'</div>';
+  h += '<div><span class="ctrl-label">具备</span>'+seg('available',it.id,[['1','是'],['0','否']],av,lock)+'</div>';
+  h += '<div class="c-score"><span class="ctrl-label">评分（1 完全不符合 → 7 完全符合'+(miss?'，本题仅作记录':'')+'）</span>'+
+       seg('score',it.id,scoreVals,sc,lock||miss)+'</div>';
+  h += '<div><span class="ctrl-label">权重</span>'+seg('weight',it.id,[['1','1'],['2','2'],['3','3']],w,false)+'</div>';
+  h += '<div><span class="ctrl-label">备注（可选）</span><input class="remark" data-remark="1" '+
+       'value="'+esc(a.remark||'')+'" placeholder="记录可观察的事实依据"></div>';
+  h += '</div>';
+  if(ap===undefined) h += '<div class="hint">请先选择「适用 / 不适用」，其余字段随之启用。</div>';
+  else if(na) h += '<div class="hint">不适用：该条整体退出计算，既不进分子也不进分母。</div>';
+  else if(miss) h += '<div class="hint miss">适用但不具备：记缺失罚分 p=1，该条按实现质量最低计入，净贡献 0；题面评分仅作记录，不参与换算。</div>';
+  else if(it.reverse) h += '<div class="hint">反向条目：换算分 = 8 − 原始评分'+(sc?'，当前 = '+(8-Number(sc)):'')+'。</div>';
+  return h+'</div>';
+}
+function renderDims(){
+  var host = document.getElementById('dims'); var h='';
+  DIMS.forEach(function(d,idx){
+    var list = ITEMS.filter(function(it){return it.dim===d.id;});
+    var done = list.filter(function(it){return ans(it.id).applicable!==undefined;}).length;
+    h += '<details class="dim" data-dim="'+d.id+'"'+(idx===0?' open':'')+'>'+
+         '<summary><span class="chev">▶</span><span class="dim-name">'+esc(d.name)+'</span>'+
+         '<span class="dim-range">第 '+list[0].id+'–'+list[list.length-1].id+' 条 · '+list.length+' 条</span>'+
+         '<span class="dim-count">已作答 <b>'+done+'</b>/'+list.length+'</span></summary>'+
+         '<div class="dim-body"><div class="dim-desc">原维度：'+esc(d.orig)+'　|　'+esc(d.note)+'</div>';
+    list.forEach(function(it){ h += itemHTML(it); });
+    h += '</div></details>';
+  });
+  host.innerHTML = h;
+}
+function refreshItem(id){
+  var old = document.querySelector('.item[data-id="'+id+'"]');
+  if(!old) return;
+  var wrap = document.createElement('div'); wrap.innerHTML = itemHTML(BY_ID[id]);
+  var fresh = wrap.firstChild;
+  var remark = old.querySelector('[data-remark]');
+  old.replaceWith(fresh);
+  if(remark){ var nr = fresh.querySelector('[data-remark]'); if(nr) nr.value = remark.value; }
+}
+function refreshProgress(){
+  var done = ITEMS.filter(function(it){return ans(it.id).applicable!==undefined;}).length;
+  document.getElementById('topProgress').innerHTML = '已作答 <b>'+done+'</b> / 140';
+  document.querySelectorAll('details.dim').forEach(function(de){
+    var d = Number(de.dataset.dim);
+    var list = ITEMS.filter(function(it){return it.dim===d;});
+    var n = list.filter(function(it){return ans(it.id).applicable!==undefined;}).length;
+    var el = de.querySelector('.dim-count');
+    if(el) el.innerHTML = '已作答 <b>'+n+'</b>/'+list.length;
+  });
+}
+
+/* ---------- 交互 ---------- */
+document.getElementById('dims').addEventListener('click', function(e){
+  var b = e.target.closest('button[data-field]'); if(!b) return;
+  var row = b.closest('.item'); var id = Number(row.dataset.id);
+  var f = b.dataset.field, v = b.dataset.val, a = ans(id);
+  if(f==='applicable'){
+    a.applicable = v;
+    if(v==='0'){ delete a.available; delete a.score; }
+    else {
+      if(a.available===undefined) a.available='1';
+      if(a.score===undefined) a.score = (a.available==='0') ? '1' : '4';
+      if(a.weight===undefined) a.weight='2';
+    }
+  } else if(f==='available'){
+    if(a.applicable!=='1') return;
+    a.available = v;
+    if(v==='0') a.score = a.score || '1';
+    else if(a.score===undefined) a.score='4';
+  } else if(f==='score'){
+    if(a.applicable!=='1') return;
+    a.score = v;
+  } else if(f==='weight'){ a.weight = v; }
+  save(); refreshItem(id); refreshProgress();
+});
+document.getElementById('dims').addEventListener('input', function(e){
+  if(!e.target.matches('[data-remark]')) return;
+  var id = Number(e.target.closest('.item').dataset.id);
+  ans(id).remark = e.target.value; save();
+});
+['m-product','m-task','m-rater','m-date'].forEach(function(k){
+  var el=document.getElementById(k);
+  el.addEventListener('input',function(){ state.meta[k]=el.value; save(); });
+});
+document.getElementById('btnExpand').onclick=function(){
+  document.querySelectorAll('details.dim').forEach(function(d){d.open=true;}); };
+document.getElementById('btnCollapse').onclick=function(){
+  document.querySelectorAll('details.dim').forEach(function(d){d.open=false;}); };
+document.getElementById('btnBulk').onclick=function(){
+  var v=document.getElementById('bulkW').value; if(!v) return;
+  ITEMS.forEach(function(it){ ans(it.id).weight=v; }); save(); renderDims(); refreshProgress(); };
+document.getElementById('btnClear').onclick=function(){
+  if(!confirm('确定清空全部 140 条作答与评估信息？此操作不可撤销。')) return;
+  state={answers:{},meta:{}}; save();
+  ['m-product','m-task','m-rater','m-date'].forEach(function(k){document.getElementById(k).value='';});
+  renderDims(); refreshProgress(); document.getElementById('resultCard').hidden=true;
+  document.getElementById('calcNotice').innerHTML='';
+};
+document.getElementById('btnFillNA').onclick=function(){
+  var n=0; ITEMS.forEach(function(it){ var a=ans(it.id);
+    if(a.applicable===undefined){ a.applicable='0'; delete a.available; delete a.score; n++; } });
+  save(); renderDims(); refreshProgress();
+  document.getElementById('calcNotice').innerHTML =
+    '<div class="notice good">已将 '+n+' 条未作答项标记为「不适用」，结果已按完整口径重新计算。</div>';
+  runCalc();
+};
+var DEMO=[[1,'1','1','6','2',''],[2,'1','1','5','3','拖拽反馈有延迟'],
+ [3,'1','1','4','2','购物车图标与结算页不一致'],[12,'1','0','2','2','跨端逻辑差异大'],
+ [13,'1','1','5','3',''],[22,'1','1','3','2','深色模式语义色反转'],
+ [63,'1','1','4','3','底部导航外需换手'],[93,'1','0','1','3','错误提示仅显示失败'],
+ [119,'0','','','2','不适用：本次任务未涉及权限']];
+document.getElementById('btnDemo').onclick=function(){
+  state.answers={}; DEMO.forEach(function(r){
+    state.answers[r[0]]={applicable:r[1],available:r[2],score:r[3],weight:r[4],remark:r[5]};});
+  state.meta={'m-product':'示例产品（附录A）','m-task':'示例任务','m-rater':'示例评估者','m-date':''};
+  save(); syncMeta(); renderDims(); refreshProgress();
+  document.getElementById('calcNotice').innerHTML=
+    '<div class="notice">已载入附录A表A.1的9条示例并自动试算。其余条目尚未作答，结果标注为「试算」；可点「未作答项统一标为不适用」后得到完整口径的分数。</div>';
+  runCalc();
+};
+function syncMeta(){ ['m-product','m-task','m-rater','m-date'].forEach(function(k){
+  document.getElementById(k).value = state.meta[k]||''; }); }
+
+/* ---------- 计分核心（严格按 2.2 / 2.3） ---------- */
+function compute(filterDim){
+  var num=0, den=0, applicable=0, na=0, unanswered=0, missing=0;
+  var detail=[];
+  ITEMS.forEach(function(it){
+    if(filterDim && it.dim!==filterDim) return;
+    var a=ans(it.id), I = a.applicable==='1'?1:0;
+    if(a.applicable===undefined){ unanswered++; detail.push({id:it.id,status:'unanswered'}); return; }
+    if(!I){ na++; detail.push({id:it.id,status:'na'}); return; }
+    applicable++;
+    var w = clamp(a.weight,1,3);
+    var raw = clamp(a.score===undefined?1:a.score,1,7);
+    var p = (a.available==='0') ? 1 : 0;
+    // 适用但不具备：题面评分仅作记录；按实现质量最低 s=1 计入，与 p=1 相抵后净贡献 0。
+    // 这样可避免反向条目因题面低分被换算成虚高得分，也符合「评分在具备的前提下」的原意。
+    var s = p ? 1 : (it.reverse ? 8-raw : raw);
+    if(p) missing++;
+    num += w*(s-p);
+    den += 7*w*I;
+    detail.push({id:it.id,status:'in',dim:it.dim,reverse:it.reverse,raw:raw,s:s,p:p,w:w,
+                 available:a.available,remark:a.remark||'',text:it.text});
+  });
+  return {index: den>0 ? num/den*100 : null, num:num, den:den,
+          applicable:applicable, na:na, unanswered:unanswered, missing:missing, detail:detail};
+}
+function grade(v){
+  if(v===null) return {k:'g-fail',label:'无有效条目',action:'请至少将一条标记为「适用」并作答。'};
+  if(v>=85) return {k:'g-excellent',label:'优秀',action:'保持现状，沉淀为设计规范'};
+  if(v>=70) return {k:'g-good',label:'良好',action:'针对最低分维度做定向优化'};
+  if(v>=55) return {k:'g-pass',label:'及格',action:'列入下一轮迭代必改清单'};
+  return {k:'g-fail',label:'不及格',action:'暂停扩展功能，优先重构关键流程'};
+}
+function f1(v){ return v===null?'—':v.toFixed(1); }
+
+function buildReport(total, dims){
+  var g=grade(total.index), m=state.meta;
+  var L=[];
+  L.push('可用性测评量表（修订版）· 在线评判报告');
+  L.push('生成时间：'+new Date().toLocaleString('zh-CN'));
+  L.push('产品/系统：'+(m['m-product']||'（未填写）'));
+  L.push('任务类型：'+(m['m-task']||'（未填写）'));
+  L.push('评估者：'+(m['m-rater']||'（未填写）')+'　评估日期：'+(m['m-date']||'（未填写）'));
+  L.push('量表：全版 140 条 / 11 维度');
+  L.push('');
+  L.push('【计分口径】Index = Σ w_i(s_i − p_i) / [7 × Σ w_i × I_i] × 100');
+  L.push('反向条目 18 条按 s = 8 − 原始评分 换算；适用但不具备记 p=1 且该条按 s=1 计入、净贡献 0；不适用整体退出计算。');
+  L.push('纳入条目 '+total.applicable+' 条｜不适用 '+total.na+' 条｜未作答 '+total.unanswered+' 条｜缺失罚分 '+total.missing+' 条');
+  L.push('加权分子 '+total.num.toFixed(1)+'｜满分分母 '+total.den.toFixed(1));
+  if(total.unanswered>0) L.push('※ 试算：'+total.unanswered+' 条未作答已排除，本结果不可用于正式比较。');
+  L.push('');
+  L.push('总指数：'+f1(total.index)+' / 100　等级：'+g.label);
+  L.push('建议动作：'+g.action);
+  L.push('');
+  L.push('【11 个维度分（同一公式，只代入该维度条目）】');
+  dims.forEach(function(d,i){
+    var r=d.res, totalN=ITEMS.filter(function(it){return it.dim===d.id;}).length;
+    L.push((i+1)+'. '+d.name+'　'+f1(r.index)+'　| 适用 '+r.applicable+'/'+totalN+
+           '　| 不适用 '+r.na+'/'+totalN+'（'+(r.na/totalN*100).toFixed(1)+'%）'+
+           '　| 未答 '+r.unanswered+'　| 缺失 '+r.missing+
+           (total.index!==null && r.index!==null && total.index-r.index>=10?'　★结构性短板':''));
+  });
+  var shorts=dims.filter(function(d){return total.index!==null&&d.res.index!==null&&total.index-d.res.index>=10;});
+  L.push('');
+  L.push('【诊断信号一：结构性短板（维度分低于总指数 10 分以上）】');
+  L.push(shorts.length? shorts.map(function(d){return d.name+'（'+f1(d.res.index)+'）';}).join('、') : '无');
+  var critical=total.detail.filter(function(x){return x.status==='in' && x.w===3 && (x.s<=3 || x.p===1);});
+  L.push('');
+  L.push('【诊断信号二：关键且失效（权重 3 且换算分 ≤3，或适用但不具备）】共 '+critical.length+' 条');
+  critical.forEach(function(x){
+    L.push('  第 '+x.id+' 条'+(x.reverse?'（R）':'')+'　'+
+           (x.p?'[适用但不具备 · 净贡献 0]':'换算分 '+x.s)+'　题面 '+x.raw+
+           '　'+x.text.slice(0,42)+'…');
+  });
+  L.push('');
+  L.push('【说明】解释区间参照 SUS 经验分档思路迁移而来，属工作假设，尚未经本量表常模验证；正式研究使用前应以本地样本分布重新标定，不应作为行业标准引用。若需与他人研究比较，应同时报告总指数、11 个维度分、各维度不适用比例与样本任务类型。');
+  return L.join('\n');
+}
+
+function renderResult(total, dims){
+  var g=grade(total.index);
+  var h='';
+  if(total.unanswered>0) h+='<div class="notice warn"><b>试算结果：</b>还有 '+total.unanswered+
+    ' 条未选择适用性，已按「未纳入」退出计算，请勿用于正式比较。可点上方「未作答项统一标为不适用」后重新计算。</div>';
+  if(total.applicable===0) h+='<div class="notice bad">尚无「适用」条目，无法计算指数。</div>';
+  h+='<div class="result-head"><div><div class="big-score" style="color:'+
+     (g.k==='g-excellent'?'var(--good)':g.k==='g-good'?'var(--brand)':g.k==='g-pass'?'var(--warn)':'var(--bad)')+
+     '">'+f1(total.index)+'<small> / 100</small></div>'+
+     '<p class="sub" style="margin-top:4px">加权分子 '+total.num.toFixed(1)+' ÷ 满分分母 '+total.den.toFixed(1)+' × 100</p></div>'+
+     '<div><span class="grade '+g.k+'">'+g.label+'</span><p style="margin:10px 0 0"><b>建议动作：</b>'+g.action+'</p>'+
+     '<p class="sub">区间为暂定工作假设，未经本量表常模验证，正式研究前应以本地样本重新标定。</p></div></div>';
+  h+='<div class="kpis">'+
+     '<div class="kpi"><b>'+total.applicable+'</b><span>纳入计算条目</span></div>'+
+     '<div class="kpi"><b>'+total.na+'</b><span>不适用（退出计算）</span></div>'+
+     '<div class="kpi"><b>'+total.unanswered+'</b><span>未作答</span></div>'+
+     '<div class="kpi"><b>'+total.missing+'</b><span>适用但不具备（罚分 1）</span></div></div>';
+
+  h+='<h3>11 个维度分</h3><table><thead><tr><th>维度</th><th>维度分</th><th style="width:150px">水平</th>'+
+     '<th>适用 / 总数</th><th>不适用比例</th><th>未答 / 缺失</th><th>诊断</th></tr></thead><tbody>';
+  dims.forEach(function(d,i){
+    var r=d.res, n=ITEMS.filter(function(it){return it.dim===d.id;}).length;
+    var dg=grade(r.index), pct=(r.na/n*100).toFixed(1)+'%';
+    var isShort = total.index!==null && r.index!==null && total.index-r.index>=10;
+    h+='<tr><td>'+(i+1)+'. '+esc(d.name)+'</td><td><b>'+f1(r.index)+'</b></td>'+
+       '<td><div class="bar"><i class="'+dg.k+'" style="width:'+(r.index===null?0:Math.max(0,Math.min(100,r.index)))+'%"></i></div></td>'+
+       '<td>'+r.applicable+' / '+n+'</td><td>'+r.na+' / '+n+'（'+pct+'）</td>'+
+       '<td>'+r.unanswered+' / '+r.missing+'</td>'+
+       '<td>'+(isShort?'<span class="short">★ 结构性短板</span>':'—')+'</td></tr>';
+  });
+  h+='</tbody></table>';
+
+  var shorts=dims.filter(function(d){return total.index!==null&&d.res.index!==null&&total.index-d.res.index>=10;});
+  var critical=total.detail.filter(function(x){return x.status==='in' && x.w===3 && (x.s<=3 || x.p===1);});
+  h+='<div class="diag" style="margin-top:20px">';
+  h+='<div class="diag-box"><h4>信号一 · 结构性短板 <span class="tag grey">低于总指数 ≥10 分</span></h4><ul>'+
+     (shorts.length?shorts.map(function(d){return '<li><b>'+esc(d.name)+'</b>（'+f1(d.res.index)+'）→ 优先处理，不必在总分高的维度继续打磨</li>';}).join(''):'<li>无</li>')+
+     '</ul></div>';
+  h+='<div class="diag-box"><h4>信号二 · 关键且失效 <span class="tag grey">权重 3 且换算分 ≤3 或缺失</span></h4><ul>'+
+     (critical.length?critical.map(function(x){return '<li>第 '+x.id+' 条'+(x.reverse?'（R）':'')+'　'+
+       (x.p?'<b style="color:var(--bad)">[适用但不具备 · 净贡献 0]</b>':'换算分 '+x.s)+
+       '　'+esc(x.text.slice(0,34))+'…</li>';}).join(''):'<li>无</li>')+'</ul></div></div>';
+  h+='<p class="sub" style="margin-top:12px">信号二采用换算后方向一致的评分判定，并把「适用但不具备」的缺失项一并列入，避免反向条目的高分被漏判；详见第二页 2.4。</p>';
+
+  var report=buildReport(total,dims);
+  h+='<div class="hr"></div><h3>可复制的完整报告</h3>'+
+     '<div class="btn-row" style="margin-bottom:10px"><button type="button" class="btn sm" id="btnCopy">复制报告</button>'+
+     '<button type="button" class="btn sm" id="btnDownload">下载报告 .txt</button></div>'+
+     '<textarea class="report-text" id="reportText" readonly>'+esc(report)+'</textarea>';
+  return h;
+}
+
+function runCalc(){
+  var total=compute(null);
+  var dims=DIMS.map(function(d){return {id:d.id,name:d.name,res:compute(d.id)};});
+  document.getElementById('resultBody').innerHTML=renderResult(total,dims);
+  var card=document.getElementById('resultCard'); card.hidden=false;
+  card.scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('btnCopy').onclick=function(){
+    var t=document.getElementById('reportText');
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(t.value).then(function(){alert('报告已复制到剪贴板');},
+        function(){t.select();document.execCommand('copy');alert('报告已复制');});
+    } else { t.select(); document.execCommand('copy'); alert('报告已复制'); }
+  };
+  document.getElementById('btnDownload').onclick=function(){
+    download((state.meta['m-product']||'可用性评判报告')+'_报告.txt',
+             document.getElementById('reportText').value,'text/plain;charset=utf-8');
+  };
+}
+document.getElementById('btnCalc').onclick=runCalc;
+
+/* ---------- CSV 答题纸 ---------- */
+function csvCell(v){ v=String(v==null?'':v); return '"'+v.replace(/"/g,'""')+'"'; }
+function download(name,content,mime){
+  var blob=new Blob(['\ufeff'+content],{type:mime});
+  var u=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=u; a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(function(){URL.revokeObjectURL(u);a.remove();},300);
+}
+document.getElementById('btnCsv').onclick=function(){
+  var t=compute(null); var byId={}; t.detail.forEach(function(x){byId[x.id]=x;});
+  var rows=[['题号','维度','题干','适用','具备','评分(题面原始)','权重','备注','反向条目','换算分','缺失罚分','状态','计入分子','计入分母']];
+  ITEMS.forEach(function(it){
+    var a=ans(it.id), x=byId[it.id]||{}, st=x.status;
+    var status = st==='in'?'纳入计算':st==='na'?'不适用（退出）':'未作答（退出）';
+    rows.push([it.id,DIMS[it.dim-1].name,it.text,
+      a.applicable==='1'?'1':a.applicable==='0'?'0':'',
+      a.applicable==='1'?(a.available==='1'?'是':a.available==='0'?'否':''):'',
+      a.score||'',a.weight||'',a.remark||'',it.reverse?'R':'',
+      st==='in'?x.s:'',st==='in'?x.p:'',status,
+      st==='in'?(x.w*(x.s-x.p)).toFixed(1):'',st==='in'?(7*x.w).toFixed(1):'']);
+  });
+  var csv=rows.map(function(r){return r.map(csvCell).join(',');}).join('\r\n');
+  download((state.meta['m-product']||'可用性量表')+'_答题纸.csv',csv,'text/csv;charset=utf-8');
+};
+
+/* ---------- 页面切换 ---------- */
+function showView(v){
+  var survey=v==='rubric'?false:true;
+  document.getElementById('view-survey').hidden=!survey;
+  document.getElementById('view-rubric').hidden=survey;
+  document.querySelectorAll('#nav button').forEach(function(b){
+    b.classList.toggle('on',b.dataset.view===(survey?'survey':'rubric')); });
+  if(location.hash.slice(1)!==(survey?'survey':'rubric')){
+    history.replaceState(null,'','#'+(survey?'survey':'rubric'));
+  }
+  window.scrollTo({top:0,behavior:'instant'});
+}
+document.getElementById('nav').addEventListener('click',function(e){
+  var b=e.target.closest('button[data-view]'); if(b) showView(b.dataset.view);
+});
+window.addEventListener('hashchange',function(){ showView(location.hash.slice(1)==='rubric'?'rubric':'survey'); });
+
+/* ---------- 启动 ---------- */
+load(); syncMeta();
+var today=new Date(); if(!state.meta['m-date'] && !document.getElementById('m-date').value){
+  document.getElementById('m-date').value = today.getFullYear()+'-'+
+    String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  state.meta['m-date']=document.getElementById('m-date').value; save();
+}
+renderDims(); refreshProgress(); showView(location.hash.slice(1)==='rubric'?'rubric':'survey');
+})();
+</script>
+</body>
+</html>

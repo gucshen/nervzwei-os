@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="hearth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>拾光 Lumos · 意象专注时钟</title>
+<style>
+/* ============ Design Tokens ============ */
+:root{
+  --bg:#1A1410; --panel:#241C15; --panel2:#2C231A; --line:#3A2E22;
+  --primary:#F0973F; --primary-grad:#FFD9A0,#E86A2C;
+  --text:#F4EFE8; --text2:#A89F92;
+  --ok:#7BC96F; --warn:#E8B44F; --danger:#E3625C;
+  --radius:16px; --radius-btn:12px; --sp:8px;
+  --focus-grad: radial-gradient(circle at 50% 45%, #FFD9A0 0%, #E86A2C 70%);
+}
+[data-theme="tide"]{--bg:#0E1418;--panel:#151D22;--panel2:#1A242B;--line:#24323B;--primary:#4FC3C9;--primary-grad:#8FE3E8,#4FA3C9;--text:#EAF4F5;--text2:#8FA6AC;--focus-grad:radial-gradient(circle at 50% 45%,#8FE3E8 0%,#4FA3C9 70%)}
+[data-theme="forest"]{--bg:#121711;--panel:#1A231A;--panel2:#202B20;--line:#2C3A2C;--primary:#8FBF6F;--primary-grad:#D2E8A0,#5E9E4A;--text:#EEF3EA;--text2:#9AAB97;--focus-grad:radial-gradient(circle at 50% 45%,#D2E8A0 0%,#5E9E4A 70%)}
+[data-theme="dusk"]{--bg:#191218;--panel:#221A26;--panel2:#2A1F30;--line:#3A2B42;--primary:#E08BB0;--primary-grad:#F5C6D8,#C25E92;--text:#F5EDF3;--text2:#B29AAC;--focus-grad:radial-gradient(circle at 50% 45%,#F5C6D8 0%,#C25E92 70%)}
+[data-theme="paper"]{--bg:#F3EEE4;--panel:#FBF8F1;--panel2:#EFE9DC;--line:#DDD4C2;--primary:#B4762A;--primary-grad:#F2C98A,#C56A22;--text:#2E2820;--text2:#7A7060;--focus-grad:radial-gradient(circle at 50% 45%,#F2C98A 0%,#C56A22 70%)}
+[data-theme="midnight"]{--bg:#0C0F1C;--panel:#141830;--panel2:#1A1F3C;--line:#262D52;--primary:#8B9DF0;--primary-grad:#C3CDFB,#5C6FD0;--text:#E9ECFA;--text2:#8A93B8;--focus-grad:radial-gradient(circle at 50% 45%,#C3CDFB 0%,#5C6FD0 70%)}
+body.break{--bg:#0E1418;--panel:#151D22;--panel2:#1A242B;--line:#24323B;--primary:#4FC3C9;--primary-grad:#8FE3E8,#4FA3C9;--text:#EAF4F5;--text2:#8FA6AC;--focus-grad:radial-gradient(circle at 50% 45%,#8FE3E8 0%,#4FA3C9 70%)}
+[data-theme="paper"] body.break, body.break[data-theme="paper"]{}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;transition:background .4s ease,color .4s ease;display:flex;overflow:hidden}
+#bgLayer{position:fixed;inset:0;background-size:cover;background-position:center;z-index:-1}
+#bgShade{position:fixed;inset:0;background:#000;z-index:-1;opacity:0}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+button:disabled{opacity:.4;cursor:not-allowed}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+#sidebar{width:240px;flex-shrink:0;border-right:1px solid var(--line);padding:24px 16px;display:flex;flex-direction:column;gap:16px;background:color-mix(in srgb,var(--panel) 70%,transparent)}
+#sidebar .logo{font-size:20px;font-weight:700;letter-spacing:1px}
+#sidebar .logo em{color:var(--primary);font-style:normal}
+.navBtn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-btn);color:var(--text2);transition:.15s ease-out;width:100%;text-align:left}
+.navBtn:hover{background:var(--panel2);color:var(--text)}
+.navBtn.active{background:var(--panel2);color:var(--primary);font-weight:600}
+#sideNav .navBtn>svg{width:22px;height:22px;flex-shrink:0}
+#sideNav .navBtn>span{white-space:nowrap}
+#todayCard{margin-top:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+#todayCard h4{font-size:12px;color:var(--text2);font-weight:500;margin-bottom:8px}
+#todayCard .nums{display:flex;gap:6px;text-align:center}
+#todayCard .nums>div{flex:1}
+#todayCard b{display:block;font-size:20px;font-variant-numeric:tabular-nums;color:var(--primary)}
+#todayCard span{font-size:11px;color:var(--text2)}
+#main{flex:1;overflow-y:auto;padding:24px;position:relative}
+.page{display:none;max-width:920px;margin:0 auto;animation:fadeIn .25s ease-out}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+#tabbar{display:none}
+@media (max-width:1023px){body{flex-direction:column}#sidebar{display:none}#main{flex:1;padding:16px 16px 96px}#tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;background:color-mix(in srgb,var(--panel) 92%,transparent);backdrop-filter:blur(12px);border-top:1px solid var(--line);z-index:50;padding:6px 8px calc(6px + env(safe-area-inset-bottom))}#tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;border-radius:10px;color:var(--text2);font-size:11px}#tabbar button.active{color:var(--primary)}#tabbar button svg{width:22px;height:22px}}
+#focusWrap{display:flex;flex-direction:column;align-items:center;gap:20px;padding-top:8px}
+#currentTaskName{font-size:14px;color:var(--text2);max-width:80%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#imageryBox{position:relative;width:min(72vw,320px);height:min(72vw,320px);display:grid;place-items:center}
+#ringSvg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+#ringSvg .track{stroke:var(--line);fill:none;stroke-width:6}
+#ringSvg .prog{stroke:var(--primary);fill:none;stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset .3s linear}
+#imageryCore{width:62%;height:62%;display:grid;place-items:center;transition:filter .5s ease;animation:breathe 4s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+body.reduced #imageryCore{animation:none}
+#imageryCore.wobble{animation:wobble .4s ease-out}
+@keyframes wobble{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+#timeText{position:absolute;font-variant-numeric:tabular-nums;font-weight:700;font-size:clamp(48px,13vw,72px);letter-spacing:2px;pointer-events:none}
+#phaseLabel{position:absolute;bottom:6%;font-size:13px;color:var(--text2);pointer-events:none}
+#controls{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.btn{padding:12px 22px;border-radius:var(--radius-btn);font-weight:600;transition:.15s ease-out;background:var(--panel2);border:1px solid var(--line)}
+.btn:hover{border-color:var(--primary)}
+.btn.primary{background:linear-gradient(135deg,var(--primary-grad));color:#1A1208;border:none}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,transparent)}
+.btn:active{transform:scale(.97)}
+#distractBtn{padding:10px 18px;border-radius:999px;border:1px dashed var(--line);color:var(--text2);font-size:13px}
+#distractBtn:hover{color:var(--warn);border-color:var(--warn)}
+#quoteFloat{position:fixed;top:18%;left:50%;transform:translateX(-50%);background:color-mix(in srgb,var(--panel) 85%,transparent);border:1px solid var(--line);padding:10px 18px;border-radius:999px;color:var(--text2);font-size:13px;opacity:0;pointer-events:none;transition:opacity .6s;z-index:40;max-width:80vw;text-align:center}
+#quoteFloat.show{opacity:1}
+#mobileSummary{display:none;gap:8px;width:100%}
+@media (max-width:1023px){#mobileSummary{display:flex}#mobileSummary>div{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center}#mobileSummary b{display:block;font-size:17px;font-variant-numeric:tabular-nums;color:var(--primary)}#mobileSummary span{font-size:10px;color:var(--text2)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+.card h3{font-size:15px;margin-bottom:12px}
+.row{display:flex;gap:8px}
+input[type=text],input[type=tel],select,textarea{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px 12px;font:inherit;width:100%}
+input[type=range]{accent-color:var(--primary);width:160px}
+.field{margin-bottom:14px}
+.field label{display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-bottom:6px}
+.switch{position:relative;width:44px;height:24px;background:var(--line);border-radius:12px;transition:.2s;flex-shrink:0}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--text2);transition:.2s}
+.switch.on{background:var(--primary)}
+.switch.on::after{left:23px;background:#1A1208}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--panel2);color:var(--text2);border:1px solid var(--line)}
+.tag.demo{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 40%,transparent)}
+.taskItem{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:var(--panel2);margin-bottom:8px;border:1px solid transparent;transition:.15s}
+.taskItem.selected{border-color:var(--primary)}
+.taskItem.done .tName{text-decoration:line-through;color:var(--text2)}
+.taskItem .chk{width:20px;height:20px;border-radius:6px;border:2px solid var(--line);flex-shrink:0;display:grid;place-items:center;color:transparent}
+.taskItem.done .chk{background:var(--ok);border-color:var(--ok);color:#12200F}
+.tName{flex:1;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tPomos{font-size:12px;color:var(--text2);font-variant-numeric:tabular-nums}
+.tPomos b{color:var(--primary)}
+.tBtn{padding:4px 8px;font-size:12px;color:var(--text2);border-radius:8px}
+.tBtn:hover{color:var(--danger)}
+.statGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px}
+.statGrid>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+.statGrid b{display:block;font-size:22px;font-variant-numeric:tabular-nums;color:var(--primary)}
+.statGrid span{font-size:11px;color:var(--text2)}
+#barChart{width:100%;height:140px}
+#lightTrack{display:flex;gap:10px;overflow-x:auto;padding:6px 2px}
+.lightMark{width:34px;height:34px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;font-size:16px;background:var(--panel2);border:1px solid var(--line)}
+#imageryUsage{display:flex;gap:8px;flex-wrap:wrap}
+.usageBar{font-size:12px;color:var(--text2);background:var(--panel2);padding:4px 10px;border-radius:999px}
+.usageBar b{color:var(--primary)}
+.rooms{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.room{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+.room h4{font-size:14px;margin-bottom:4px}
+.room p{font-size:12px;color:var(--text2);margin-bottom:10px}
+.memberWall{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.member{width:56px;text-align:center}
+.avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:18px;background:var(--panel2);border:2px solid var(--line);margin:0 auto 4px}
+.member.focusing .avatar{border-color:var(--primary);box-shadow:0 0 12px color-mix(in srgb,var(--primary) 50%,transparent)}
+.member span{font-size:10px;color:var(--text2);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.member em{font-size:9px;font-style:normal}
+.member.focusing em{color:var(--primary)}
+#leaderboard table{width:100%;border-collapse:collapse;font-size:13px}
+#leaderboard td,#leaderboard th{padding:8px 6px;text-align:left;border-bottom:1px solid var(--line)}
+#leaderboard tr.me td{color:var(--primary);font-weight:600;background:color-mix(in srgb,var(--primary) 8%,transparent)}
+#leaderboard .rank{font-variant-numeric:tabular-nums;width:36px}
+.loginBtns{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.profileRow{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+#voiceList{display:flex;flex-direction:column;gap:8px}
+.voiceItem{display:flex;align-items:center;gap:8px;background:var(--panel2);border-radius:10px;padding:8px 12px;font-size:13px}
+.voiceItem input[type=text]{width:auto;flex:1}
+.themeGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:10px}
+.themeSwatch{border-radius:12px;padding:10px;border:2px solid var(--line);cursor:pointer;text-align:center;font-size:12px;color:var(--text)}
+.themeSwatch.active{border-color:var(--primary)}
+.swatchDot{width:100%;height:36px;border-radius:8px;margin-bottom:6px}
+.kbd{font-size:11px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:2px 6px;color:var(--text2)}
+.hint{font-size:12px;color:var(--text2);margin-top:6px}
+#modalBack{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:90;display:none;align-items:center;justify-content:center;padding:20px}
+#modalBack.show{display:flex}
+#modalBox{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;width:min(440px,100%);max-height:80vh;overflow-y:auto}
+#tutOverlay{position:fixed;inset:0;z-index:100;display:none}
+#tutOverlay.show{display:block}
+#tutMask{position:absolute;border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.72);transition:all .3s ease-out;pointer-events:none}
+#tutBubble{position:absolute;background:var(--panel);border:1px solid var(--primary);border-radius:12px;padding:14px;width:min(300px,84vw);z-index:2;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+#tutBubble h5{font-size:14px;margin-bottom:6px;color:var(--primary)}
+#tutBubble p{font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6}
+#tutBubble .row{justify-content:flex-end;gap:8px}
+#tutStep{position:absolute;top:8px;right:12px;font-size:12px;color:var(--text2)}
+#toast{position:fixed;bottom:110px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:10px 20px;font-size:13px;opacity:0;transition:.3s;z-index:110;pointer-events:none;max-width:86vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (max-width:1023px){#toast{bottom:90px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="bgLayer"></div><div id="bgShade"></div>
+<aside id="sidebar">
+  <div class="logo">拾光 <em>Lumos</em></div>
+  <nav id="sideNav"></nav>
+  <div id="todayCard">
+    <h4>今日光量</h4>
+    <div class="nums">
+      <div><b id="sPomos">0</b><span>番茄</span></div>
+      <div><b id="sMins">0</b><span>分钟</span></div>
+      <div><b id="sStreak">0</b><span>连击天</span></div>
+    </div>
+  </div>
+</aside>
+<main id="main">
+  <section id="page-focus" class="page active">
+    <div id="mobileSummary">
+      <div><b id="mPomos">0</b><span>今日番茄</span></div>
+      <div><b id="mMins">0</b><span>今日分钟</span></div>
+      <div><b id="mStreak">0</b><span>连击</span></div>
+    </div>
+    <div id="focusWrap">
+      <div id="currentTaskName">自由专注 · 未选择任务</div>
+      <div id="imageryBox">
+        <svg id="ringSvg" viewBox="0 0 200 200"><circle class="track" cx="100" cy="100" r="92"/><circle class="prog" id="ringProg" cx="100" cy="100" r="92" stroke-dasharray="578" stroke-dashoffset="578"/></svg>
+        <div id="imageryCore"></div>
+        <div id="timeText">25:00</div>
+        <div id="phaseLabel">准备开始</div>
+      </div>
+      <div id="controls">
+        <button class="btn primary" id="startBtn">开始专注</button>
+        <button class="btn" id="pauseBtn" disabled>暂停</button>
+        <button class="btn" id="skipBtn" disabled>跳过休息</button>
+        <button class="btn danger" id="giveupBtn" disabled>放弃</button>
+      </div>
+      <button id="distractBtn">我有点想分心…</button>
+    </div>
+  </section>
+  <section id="page-tasks" class="page">
+    <div class="card">
+      <h3>任务清单</h3>
+      <div class="row" style="margin-bottom:12px">
+        <input type="text" id="taskInput" placeholder="要专注做什么？回车添加" aria-label="新任务标题">
+        <input type="text" id="taskPomoInput" inputmode="numeric" placeholder="预估🍅" style="width:84px" aria-label="预估番茄数">
+        <button class="btn primary" id="addTaskBtn">添加</button>
+      </div>
+      <div id="taskList"></div>
+      <p class="hint" id="emptyTasks">还没有任务，也可以回到专注页直接开始一个自由番茄。</p>
+    </div>
+  </section>
+  <section id="page-stats" class="page">
+    <div class="statGrid">
+      <div><b id="stPomos">0</b><span>今日番茄</span></div>
+      <div><b id="stMins">0</b><span>今日专注分钟</span></div>
+      <div><b id="stStreak">0</b><span>连续天数</span></div>
+      <div><b id="stDistract">0</b><span>今日分心次数</span></div>
+    </div>
+    <div class="card"><h3>今日光轨</h3><div id="lightTrack"><span class="hint">今天还没有完成的番茄，去点亮第一束光吧。</span></div></div>
+    <div class="card"><h3>近 7 天专注分钟</h3><svg id="barChart" viewBox="0 0 700 140" preserveAspectRatio="none" role="img" aria-label="近7天专注分钟柱状图"></svg></div>
+    <div class="card"><h3>意象使用占比</h3><div id="imageryUsage"><span class="hint">暂无数据</span></div></div>
+  </section>
+  <section id="page-social" class="page">
+    <div class="card">
+      <h3>自习室 <span class="tag demo">DEMO 演示数据</span></h3>
+      <p class="hint" style="margin-bottom:12px">以下房间与同伴为演示数据，用于体验交互；正式版将接入实时房间（方案见网页内 AI 提示词）。</p>
+      <div class="rooms" id="roomList"></div>
+    </div>
+    <div class="card">
+      <h3>排行榜 <span class="tag demo">DEMO 演示数据</span></h3>
+      <div class="row" style="margin-bottom:12px">
+        <select id="lbRange" aria-label="榜单范围" style="width:auto"><option value="today">今日</option><option value="week">本周</option></select>
+        <select id="lbDim" aria-label="榜单维度" style="width:auto"><option value="mins">专注时长</option><option value="streak">连续天数</option></select>
+      </div>
+      <div id="leaderboard"></div>
+    </div>
+  </section>
+  <section id="page-me" class="page">
+    <div class="card">
+      <h3>账号 <span class="tag demo">DEMO 登录</span></h3>
+      <div id="profileArea"></div>
+    </div>
+    <div class="card">
+      <h3>主题</h3>
+      <div class="themeGrid" id="themeGrid"></div>
+      <div class="field" style="margin-top:14px">
+        <label>自定义背景图 <span id="shadeLabel">遮罩 55%</span></label>
+        <div class="row">
+          <input type="file" id="bgFile" accept="image/*" style="padding:8px">
+          <button class="btn" id="bgClear">清除</button>
+        </div>
+        <input type="range" id="shadeRange" min="0" max="90" value="55" style="width:100%;margin-top:8px" aria-label="背景遮罩浓度">
+      </div>
+    </div>
+    <div class="card">
+      <h3>专注意象</h3>
+      <div class="themeGrid" id="imageryGrid"></div>
+    </div>
+    <div class="card">
+      <h3>计时与模式</h3>
+      <div class="field"><label>专注时长 <span id="vFocus">25 分钟</span></label><input type="range" id="durFocus" min="5" max="90" value="25" style="width:100%"></div>
+      <div class="field"><label>短休息 <span id="vShort">5 分钟</span></label><input type="range" id="durShort" min="1" max="30" value="5" style="width:100%"></div>
+      <div class="field"><label>长休息 <span id="vLong">15 分钟</span></label><input type="range" id="durLong" min="5" max="45" value="15" style="width:100%"></div>
+      <div class="field"><label>长休息间隔 <span id="vCycle">每 4 个番茄</span></label><input type="range" id="durCycle" min="2" max="8" value="4" style="width:100%"></div>
+      <div class="voiceItem"><span>严格模式（休息不可跳过 / 专注不可暂停）</span><button class="switch" id="strictSwitch" role="switch" aria-label="严格模式"></button></div>
+    </div>
+    <div class="card">
+      <h3>鼓励声音</h3>
+      <div class="field"><label>事件音色（系统语音）</label><select id="voiceSelect" aria-label="语音音色"></select></div>
+      <div class="field"><label>录音自定义音色（最长 6 秒）</label>
+        <div class="row"><button class="btn" id="recBtn">🎤 录音</button><button class="btn ghost" id="recPlay" disabled>试听</button><button class="btn ghost" id="recDel" disabled>删除</button></div>
+        <p class="hint">录音仅保存在本地浏览器。正式版的音色克隆需取得声音所有者明确授权。</p>
+      </div>
+      <div id="voiceList"></div>
+    </div>
+    <div class="card">
+      <h3>白噪音</h3>
+      <div class="row" style="flex-wrap:wrap;gap:8px">
+        <button class="btn ghost" data-noise="fire">🔥 炉火</button>
+        <button class="btn ghost" data-noise="rain">🌧️ 雨声</button>
+        <button class="btn ghost" data-noise="wind">🍃 风声</button>
+      </div>
+      <div class="field" style="margin-top:10px"><label>音量</label><input type="range" id="noiseVol" min="0" max="100" value="40" style="width:100%"></div>
+    </div>
+    <div class="card">
+      <h3>激励语库</h3>
+      <textarea id="quoteEditor" rows="4" aria-label="激励语，每行一句"></textarea>
+      <p class="hint">每行一句，专注中每 5 分钟随机浮现一句。</p>
+      <button class="btn" id="quoteSave" style="margin-top:10px">保存</button>
+    </div>
+    <div class="card">
+      <h3>其他</h3>
+      <p class="hint" style="margin-bottom:10px">桌面快捷键：<span class="kbd">Space</span> 开始/暂停 · <span class="kbd">D</span> 分心敲击 · <span class="kbd">S</span> 跳过休息</p>
+      <div class="row" style="flex-wrap:wrap">
+        <button class="btn" id="replayTut">重看新手教程</button>
+        <button class="btn danger" id="clearData">清除全部数据</button>
+      </div>
+    </div>
+  </section>
+</main>
+<nav id="tabbar" aria-label="主导航"></nav>
+<div id="quoteFloat" aria-hidden="true"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="modalBack"><div id="modalBox" role="dialog" aria-modal="true"></div></div>
+<div id="tutOverlay" aria-hidden="true">
+  <div id="tutMask"></div>
+  <div id="tutBubble">
+    <span id="tutStep">1 / 5</span>
+    <h5 id="tutTitle"></h5>
+    <p id="tutText"></p>
+    <div class="row">
+      <button class="btn ghost" id="tutPrev" style="padding:8px 14px">上一步</button>
+      <button class="btn ghost" id="tutSkip" style="padding:8px 14px">跳过</button>
+      <button class="btn primary" id="tutNext" style="padding:8px 18px">下一步</button>
+    </div>
+  </div>
+</div>
+<script>
+"use strict";
+
+/* ============ 常量与状态 ============ */
+const $=s=>document.querySelector(s),$$=s=>Array.from(document.querySelectorAll(s));const EMBED=new URLSearchParams(location.search).get("embed")==="1";
+const IMAGERIES={
+  tomato:{name:"🍅 番茄",desc:"果实随专注渐熟泛红"},
+  flame:{name:"🔥 炉火",desc:"光核随进度变亮变大"},
+  seed:{name:"🌱 种子",desc:"发芽抽枝，长成小树"},
+  tide:{name:"🌊 潮汐",desc:"潮水随专注缓缓上涨"},
+  candle:{name:"🕯️ 蜡烛",desc:"烛身静静燃短"},
+  star:{name:"⭐ 星轨",desc:"逐星点亮一座星座"}
+};
+const THEMES={
+  hearth:{name:"暖炉",p:"#F0973F"},
+  tide:{name:"潮汐",p:"#4FC3C9"},
+  forest:{name:"林间",p:"#8FBF6F"},
+  dusk:{name:"暮霞",p:"#E08BB0"},
+  paper:{name:"墨纸",p:"#B4762A"},
+  midnight:{name:"午夜",p:"#8B9DF0"}
+};
+const DEFAULT_QUOTES=["把散落的注意力，拾成一束光。","此刻只做这一件事。","分心很正常，回来就好。","光在慢慢变亮，别急。","你比你想象的更能专注。"];
+const VOICE_EVENTS=[
+  {key:"start",label:"专注开始",default:"开始专注，把光点亮。"},
+  {key:"min5",label:"剩余5分钟",default:"还有5分钟，光快满了。"},
+  {key:"done",label:"专注完成",default:"漂亮！这束光收进了你的光轨。"},
+  {key:"back",label:"回归专注",default:"休息结束，我们回来继续。"}
+];
+const store={
+  get(k,d){try{const v=localStorage.getItem("lumos_"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem("lumos_"+k,JSON.stringify(v))}catch(e){toast("本地存储空间不足")}}
+};
+let S={
+  phase:"idle",breakKind:"short",endAt:0,remainMs:0,paused:false,
+  focusDone:0,min5Said:false,
+  imagery:store.get("imagery","flame"),
+  theme:store.get("theme","hearth"),
+  strict:store.get("strict",false),
+  durations:store.get("durations",{focus:25,short:5,long:15,cycle:4}),
+  selectedTask:store.get("selectedTask",null),
+  quotes:store.get("quotes",null)||DEFAULT_QUOTES.slice(),
+  voiceOn:store.get("voiceOn",{}),
+  voiceText:store.get("voiceText",{}),
+  voiceName:store.get("voiceName",""),
+  recVoice:store.get("recVoice",""),
+  account:store.get("account",null),
+  bgImage:store.get("bgImage",""),
+  shade:store.get("shade",55),
+  invisible:store.get("invisible",false),
+  noise:store.get("noise","none")
+};
+const stats=()=>store.get("stats",{});
+const tasks=()=>store.get("tasks",[]);
+const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+function saveStat(mut){const all=stats();const k=todayKey();if(!all[k])all[k]={pomos:0,mins:0,distract:[],imagery:{},marks:[]};mut(all[k]);store.set("stats",all)}
+
+/* ============ Toast / 弹层 ============ */
+let toastTimer=null;
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2400)}
+function modal(html){$("#modalBox").innerHTML=html;$("#modalBack").classList.add("show")}
+function closeModal(){$("#modalBack").classList.remove("show")}
+$("#modalBack").addEventListener("click",e=>{if(e.target.id==="modalBack"&&!$("#modalBack").dataset.lock)closeModal()});
+
+/* ============ 导航 ============ */
+const PAGES=[
+  {id:"focus",name:"专注",icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>'},
+  {id:"tasks",name:"任务",icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg>'},
+  {id:"stats",name:"统计",icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>'},
+  {id:"social",name:"自习室",icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><circle cx="17" cy="9" r="2"/><path d="M16 15c2.5 0 5 1.5 5 4"/></svg>'},
+  {id:"me",name:"我的",icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>'}
+];
+function buildNav(){
+  $("#sideNav").innerHTML=PAGES.map(p=>`<button class="navBtn" data-page="${p.id}">${p.icon}<span>${p.name}</span></button>`).join("");
+  $("#tabbar").innerHTML=PAGES.map(p=>`<button data-page="${p.id}">${p.icon}<span>${p.name}</span></button>`).join("");
+  $$("[data-page]").forEach(b=>b.addEventListener("click",()=>gotoPage(b.dataset.page)));
+}
+function gotoPage(id){
+  $$(".page").forEach(p=>p.classList.remove("active"));
+  $("#page-"+id).classList.add("active");
+  $$("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
+  $("#main").scrollTop=0;
+  if(id==="stats")renderStats();
+  if(id==="social")renderSocial();
+}
+
+/* ============ 意象渲染 ============ */
+function imagerySVG(p){
+  switch(S.imagery){
+    case "tomato":return `<svg viewBox="0 0 100 100" style="width:70%;filter:drop-shadow(0 0 ${8+p*20}px rgba(226,90,60,.6))"><path d="M50 22 C40 14 46 8 50 12 C54 8 60 14 50 22" fill="#5E9E4A"/><circle cx="50" cy="56" r="30" fill="hsl(${Math.round(100-100*p)},65%,${Math.round(45+10*p)}%)"/><circle cx="50" cy="56" r="30" fill="hsl(14,80%,52%)" opacity="${p.toFixed(2)}"/><circle cx="42" cy="48" r="6" fill="rgba(255,255,255,.25)"/></svg>`;
+    case "flame":return `<svg viewBox="0 0 100 100" style="width:70%;transform:scale(${.7+.4*p});filter:drop-shadow(0 0 ${10+p*26}px var(--primary))"><path d="M50 10 C58 28 74 36 74 58 A24 24 0 1 1 26 58 C26 42 40 32 44 20 C46 30 52 32 50 10Z" fill="url(#flameGrad)"/><defs><linearGradient id="flameGrad" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#E86A2C"/><stop offset="1" stop-color="#FFD9A0"/></linearGradient></defs></svg>`;
+    case "seed":return `<svg viewBox="0 0 100 100" style="width:70%"><ellipse cx="50" cy="86" rx="26" ry="6" fill="var(--line)"/><path d="M50 84 L50 ${84-52*p}" stroke="#5E9E4A" stroke-width="4" stroke-linecap="round" fill="none"/><path d="M50 ${84-30*p} Q${50+24*p} ${70-34*p} ${50+26*p} ${64-36*p} Q${50+8*p} ${74-30*p} 50 ${84-30*p}" fill="#7BC96F" opacity="${Math.min(1,p*1.4).toFixed(2)}"/><circle cx="50" cy="${84-52*p}" r="4" fill="#D2E8A0"/></svg>`;
+    case "tide":return `<svg viewBox="0 0 100 100" style="width:70%"><rect x="14" y="14" width="72" height="72" rx="8" fill="none" stroke="var(--line)" stroke-width="2"/><clipPath id="tideClip"><rect x="14" y="14" width="72" height="72" rx="8"/></clipPath><g clip-path="url(#tideClip)"><path d="M14 ${86-58*p} Q32 ${80-58*p} 50 ${86-58*p} T86 ${86-58*p} V86 H14Z" fill="url(#tideGrad)"/><defs><linearGradient id="tideGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8FE3E8"/><stop offset="1" stop-color="#4FA3C9"/></linearGradient></defs></g></svg>`;
+    case "candle":return `<svg viewBox="0 0 100 100" style="width:70%"><rect x="44" y="${28+50*p}" width="12" height="${Math.max(2,54-50*p)}" rx="2" fill="#E8D9BE"/><rect x="40" y="80" width="20" height="6" rx="2" fill="var(--line)"/><path d="M50 ${28+50*p-12} C55 ${28+50*p-4} 52 ${28+50*p} 50 ${28+50*p} C48 ${28+50*p} 45 ${28+50*p-4} 50 ${28+50*p-12}Z" fill="#FFD08A" style="filter:drop-shadow(0 0 6px #F5A623)"/></svg>`;
+    case "star":{const stars=[[50,26],[32,40],[68,40],[22,58],[78,58],[38,74],[62,74]];const lit=Math.floor(p*stars.length+0.5);return `<svg viewBox="0 0 100 100" style="width:70%">${stars.map((s,i)=>`<circle cx="${s[0]}" cy="${s[1]}" r="${i<lit?4:2.4}" fill="${i<lit?"var(--primary)":"var(--line)"}" style="${i<lit?"filter:drop-shadow(0 0 6px var(--primary))":""}"/>`).join("")}${stars.slice(0,Math.max(2,lit)).map((s,i,arr)=>i?`<line x1="${arr[i-1][0]}" y1="${arr[i-1][1]}" x2="${s[0]}" y2="${s[1]}" stroke="var(--primary)" stroke-width="1" opacity=".5"/>`:"").join("")}</svg>`}
+    default:return "";
+  }
+}
+function renderImagery(p){
+  $("#imageryCore").innerHTML=imagerySVG(p);
+  $("#ringProg").setAttribute("stroke-dashoffset",(578*(1-p)).toFixed(1));
+}
+
+/* ============ 计时核心 ============ */
+function fmt(ms){const s=Math.max(0,Math.ceil(ms/1000));return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+function currentRemain(){return S.paused?S.remainMs:(S.endAt-Date.now())}
+function phaseDur(){const d=S.durations;return (S.phase==="break"?(S.breakKind==="long"?d.long:d.short):d.focus)*60000}
+let tickTimer=null,lastQuoteAt=0;
+function startFocus(){
+  S.phase="focus";S.paused=false;S.min5Said=false;
+  S.endAt=Date.now()+phaseDur();
+  document.body.classList.remove("break");
+  setControls();renderImagery(0);
+  $("#phaseLabel").textContent="专注中 · "+(S.imagery==="tomato"?"番茄渐熟":IMAGERIES[S.imagery].desc);
+  lastQuoteAt=Date.now();
+  speak("start");startTick();
+}
+function startBreak(kind){
+  S.phase="break";S.breakKind=kind;S.paused=false;
+  S.endAt=Date.now()+phaseDur();
+  document.body.classList.add("break");
+  setControls();renderImagery(0);
+  $("#phaseLabel").textContent=(kind==="long"?"长休息":"短休息")+" · 跟随圆环呼吸（吸 4 秒 / 呼 4 秒）";
+  speak("back");startTick();
+}
+function startTick(){clearInterval(tickTimer);tickTimer=setInterval(tick,250);tick()}
+function stopTick(){clearInterval(tickTimer);tickTimer=null}
+function tick(){
+  if(S.phase==="idle")return;
+  const remain=currentRemain();
+  $("#timeText").textContent=fmt(remain);
+  const total=phaseDur(),p=1-remain/total;
+  renderImagery(p);
+  document.title=fmt(remain)+(S.phase==="break"?" · 休息":" · 专注")+" · 拾光 Lumos";
+  if(S.phase==="focus"){
+    if(!S.min5Said&&remain<=5*60000&&remain>4.8*60000){S.min5Said=true;speak("min5")}
+    if(Date.now()-lastQuoteAt>=5*60000){lastQuoteAt=Date.now();showQuote()}
+    if(remain<=0)completeFocus();
+  }else if(remain<=0){stopTick();resetIdle();toast("休息结束，随时开始下一个专注");speak("back")}
+}
+function completeFocus(){
+  stopTick();
+  const mins=S.durations.focus;
+  saveStat(d=>{d.pomos++;d.mins+=mins;d.imagery[S.imagery]=(d.imagery[S.imagery]||0)+1;d.marks.push({img:S.imagery,at:Date.now()})});
+  if(S.selectedTask!=null){
+    const ts=tasks();const t=ts.find(t=>t.id===S.selectedTask);
+    if(t){t.done=(t.done||0)+1;store.set("tasks",ts)}renderTasks();
+  }
+  S.focusDone++;refreshSummary();speak("done");
+  askReflection(()=>{if(S.focusDone>=S.durations.cycle){S.focusDone=0;startBreak("long")}else startBreak("short")});
+}
+function askReflection(next){
+  $("#modalBack").dataset.lock="1";
+  modal(`<h3 style="margin-bottom:8px">这束光定格了 🎉</h3>
+  <p class="hint" style="margin-bottom:14px">一句话记下这次专注的感受（可跳过）：</p>
+  <textarea id="reflectInput" rows="3" placeholder="例如：终于把方案的第一节写完了"></textarea>
+  <div class="row" style="justify-content:flex-end;margin-top:14px">
+    <button class="btn ghost" id="reflectSkip">跳过</button>
+    <button class="btn primary" id="reflectOk">收下这束光</button>
+  </div>`);
+  $("#reflectOk").onclick=()=>{
+    const v=$("#reflectInput").value.trim();
+    if(v){const all=store.get("reflections",[]);all.push({t:Date.now(),text:v});store.set("reflections",all)}
+    closeModal();delete $("#modalBack").dataset.lock;next();
+  };
+  $("#reflectSkip").onclick=()=>{closeModal();delete $("#modalBack").dataset.lock;next()};
+}
+function resetIdle(){
+  stopTick();S.phase="idle";S.paused=false;document.body.classList.remove("break");
+  $("#timeText").textContent=fmt(S.durations.focus*60000);
+  $("#phaseLabel").textContent="准备开始";
+  document.title="拾光 Lumos · 意象专注时钟";
+  renderImagery(0);setControls();
+}
+function giveUp(){
+  if(S.phase!=="focus")return;
+  $("#modalBack").dataset.lock="1";
+  modal(`<h3 style="margin-bottom:8px">放弃这个番茄？</h3>
+  <p class="hint" style="margin-bottom:14px">光会轻轻散开，不会惩罚你——每一次尝试都算数。</p>
+  <div class="row" style="justify-content:flex-end">
+    <button class="btn ghost" id="guCancel">继续专注</button>
+    <button class="btn danger" id="guOk">放弃</button>
+  </div>`);
+  $("#guCancel").onclick=()=>{closeModal();delete $("#modalBack").dataset.lock};
+  $("#guOk").onclick=()=>{
+    closeModal();delete $("#modalBack").dataset.lock;
+    const core=$("#imageryCore");
+    core.style.transition="transform .8s ease,opacity .8s ease";
+    core.style.transform="scale(1.6)";core.style.opacity="0";
+    setTimeout(()=>{core.style.transition="";core.style.transform="";core.style.opacity="";resetIdle();toast("光散开了，休息一下再来")},800);
+  };
+}
+function setControls(){
+  const focus=S.phase==="focus",brk=S.phase==="break";
+  $("#startBtn").textContent=S.phase==="idle"?"开始专注":"重新开始";
+  $("#pauseBtn").disabled=!(focus&&!S.strict)||S.paused;
+  $("#pauseBtn").textContent=S.paused?"继续":"暂停";
+  $("#skipBtn").disabled=!(brk&&!S.strict);
+  $("#giveupBtn").disabled=!focus;
+  $("#distractBtn").style.visibility=focus?"visible":"hidden";
+}
+$("#startBtn").onclick=()=>{
+  if(S.phase==="idle"){startFocus();return}
+  $("#modalBack").dataset.lock="1";
+  modal(`<h3 style="margin-bottom:8px">重新开始当前阶段？</h3><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn ghost" id="rCancel">取消</button><button class="btn primary" id="rOk">重新开始</button></div>`);
+  $("#rCancel").onclick=()=>{closeModal();delete $("#modalBack").dataset.lock};
+  $("#rOk").onclick=()=>{closeModal();delete $("#modalBack").dataset.lock;S.phase==="break"?startBreak(S.breakKind):startFocus()};
+};
+$("#pauseBtn").onclick=()=>{if(S.paused){S.endAt=Date.now()+S.remainMs;S.paused=false}else{S.remainMs=currentRemain();S.paused=true}setControls()};
+$("#skipBtn").onclick=()=>{if(S.phase==="break"&&!S.strict){stopTick();resetIdle();toast("已跳过休息")}};
+$("#giveupBtn").onclick=giveUp;
+$("#distractBtn").onclick=()=>{
+  if(S.phase!=="focus")return;
+  saveStat(d=>d.distract.push(Date.now()));
+  const core=$("#imageryCore");core.classList.remove("wobble");void core.offsetWidth;core.classList.add("wobble");
+  setTimeout(()=>core.classList.remove("wobble"),450);
+  toast("已记录一次分心冲动，回来就好");refreshSummary();
+};
+function showQuote(){
+  const q=S.quotes.length?S.quotes[Math.floor(Math.random()*S.quotes.length)]:"";
+  if(!q)return;const el=$("#quoteFloat");el.textContent=q;el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),4000);
+}
+
+/* ============ 语音 ============ */
+let voices=[];
+function loadVoices(){
+  if(!window.speechSynthesis){$("#voiceSelect").innerHTML='<option value="">当前浏览器不支持语音合成</option>';return}
+  voices=speechSynthesis.getVoices();
+  const opts=['<option value="">默认音色</option>'].concat(voices.map(v=>`<option value="${v.name}">${v.name}（${v.lang}）</option>`));
+  $("#voiceSelect").innerHTML=opts.join("");
+  if(S.voiceName)$("#voiceSelect").value=S.voiceName;
+  if($("#voiceSelect").selectedIndex<0)$("#voiceSelect").value="";
+}
+if(window.speechSynthesis){speechSynthesis.onvoiceschanged=loadVoices;loadVoices()}
+$("#voiceSelect").onchange=e=>{S.voiceName=e.target.value;store.set("voiceName",S.voiceName)};
+function speak(event){
+  if(!S.voiceOn[event])return;
+  const text=(S.voiceText[event]||"").trim();
+  if(!text)return;
+  if(S.recVoice){try{new Audio(S.recVoice).play()}catch(e){}return}
+  if(!window.speechSynthesis)return;
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang="zh-CN";
+  const v=voices.find(v=>v.name===S.voiceName);if(v)u.voice=v;
+  speechSynthesis.speak(u);
+}
+function renderVoiceList(){
+  $("#voiceList").innerHTML=VOICE_EVENTS.map(e=>`
+    <div class="voiceItem">
+      <input type="checkbox" data-ev="${e.key}" ${S.voiceOn[e.key]?"checked":""} aria-label="${e.label}开关">
+      <span style="width:88px;flex-shrink:0">${e.label}</span>
+      <input type="text" data-txt="${e.key}" value="${(S.voiceText[e.key]||e.default).replace(/"/g,"&quot;")}" aria-label="${e.label}文案">
+    </div>`).join("");
+  $$("#voiceList input[type=checkbox]").forEach(c=>c.onchange=()=>{S.voiceOn[c.dataset.ev]=c.checked;store.set("voiceOn",S.voiceOn)});
+  $$("#voiceList input[type=text]").forEach(t=>t.oninput=()=>{S.voiceText[t.dataset.txt]=t.value;store.set("voiceText",S.voiceText)});
+}
+
+/* ============ 录音自定义音色 ============ */
+let mediaRec=null,recChunks=[];
+$("#recBtn").onclick=async()=>{
+  if(mediaRec&&mediaRec.state==="recording"){mediaRec.stop();return}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    mediaRec=new MediaRecorder(stream);recChunks=[];
+    mediaRec.ondataavailable=e=>recChunks.push(e.data);
+    mediaRec.onstop=()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      const blob=new Blob(recChunks,{type:mediaRec.mimeType});
+      if(blob.size>800000){toast("录音过长，请控制在 6 秒内");return}
+      const fr=new FileReader();
+      fr.onload=()=>{S.recVoice=fr.result;store.set("recVoice",S.recVoice);$("#recPlay").disabled=false;$("#recDel").disabled=false;$("#recBtn").textContent="🎤 录音";toast("录音音色已保存")};
+      fr.readAsDataURL(blob);
+    };
+    mediaRec.start();$("#recBtn").textContent="⏹ 停止";
+    setTimeout(()=>{if(mediaRec&&mediaRec.state==="recording")mediaRec.stop()},6000);
+    toast("开始录音，最长 6 秒");
+  }catch(e){toast("无法访问麦克风："+e.message)}
+};
+$("#recPlay").onclick=()=>{if(S.recVoice)new Audio(S.recVoice).play()};
+$("#recDel").onclick=()=>{S.recVoice="";store.set("recVoice","");$("#recPlay").disabled=true;$("#recDel").disabled=true;toast("已删除录音")};
+
+/* ============ 白噪音（Web Audio 程序化合成） ============ */
+let audioCtx=null,noiseNodes=null;
+function makeNoise(type){
+  if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  stopNoise();
+  const ctx=audioCtx,len=ctx.sampleRate*2,buf=ctx.createBuffer(1,len,ctx.sampleRate),data=buf.getChannelData(0);
+  let b0=0,b1=0,b2=0;
+  for(let i=0;i<len;i++){
+    const w=Math.random()*2-1;
+    b0=.997*b0+.029*w;b1=.985*b1+.032*w;
+    b2=.95*b2+.048*w;
+    data[i]=(b0+b1+b2+w*.05)*.6;
+  }
+  const src=ctx.createBufferSource();src.buffer=buf;src.loop=true;
+  const gain=ctx.createGain();gain.gain.value=$("#noiseVol").value/100*.5;
+  const filt=ctx.createBiquadFilter();
+  if(type==="rain"){filt.type="bandpass";filt.frequency.value=1800;filt.Q.value=.4}
+  else{filt.type="lowpass";filt.frequency.value=type==="fire"?320:600}
+  src.connect(filt);filt.connect(gain);gain.connect(ctx.destination);
+  src.start();
+  noiseNodes={src,gain,filter:filt,type};
+  if(type==="wind"){
+    const lfo=ctx.createOscillator(),lg=ctx.createGain();
+    lfo.frequency.value=.15;lg.gain.value=.18;
+    lfo.connect(lg);lg.connect(gain.gain);lfo.start();noiseNodes.lfo=lfo;
+  }
+  if(type==="fire"){
+    noiseNodes.popTimer=setInterval(()=>{
+      if(!noiseNodes)return;
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type="triangle";o.frequency.value=90+Math.random()*160;
+      g.gain.setValueAtTime(.15,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.08);
+      o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+.09);
+    },700);
+  }
+}
+function stopNoise(){
+  if(!noiseNodes)return;clearInterval(noiseNodes.popTimer);
+  try{noiseNodes.src.stop();if(noiseNodes.lfo)noiseNodes.lfo.stop()}catch(e){}
+  noiseNodes=null;
+}
+$$("[data-noise]").forEach(b=>b.onclick=()=>{
+  const t=b.dataset.noise;
+  if(S.noise===t){S.noise="none";stopNoise();toast("白噪音已关闭")}
+  else{S.noise=t;if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();makeNoise(t);toast("已开启"+t)}
+  store.set("noise",S.noise);
+});
+$("#noiseVol").oninput=e=>{if(noiseNodes)noiseNodes.gain.gain.value=e.target.value/100*.5};
+
+/* ============ 任务 ============ */
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function renderTasks(){
+  const ts=tasks(),list=$("#taskList");
+  $("#emptyTasks").style.display=ts.length?"none":"block";
+  list.innerHTML=ts.map(t=>`
+    <div class="taskItem ${t.id===S.selectedTask?"selected":""} ${t.finished?"done":""}" data-id="${t.id}">
+      <button class="chk" aria-label="完成任务">${t.finished?"✓":""}</button>
+      <span class="tName">${escapeHtml(t.title)}</span>
+      <span class="tPomos"><b>${t.done||0}</b>/${t.est||"–"} 🍅</span>
+      <button class="tBtn del" aria-label="删除任务">删除</button>
+    </div>`).join("");
+  list.querySelectorAll(".taskItem").forEach(el=>{
+    const id=+el.dataset.id;
+    el.addEventListener("click",e=>{
+      if(e.target.classList.contains("del")){
+        if(S.selectedTask===id){S.selectedTask=null;store.set("selectedTask",null);updateTaskName()}
+        store.set("tasks",tasks().filter(t=>t.id!==id));renderTasks();return;
+      }
+      if(e.target.classList.contains("chk")){
+        const ts2=tasks();const t=ts2.find(t=>t.id===id);if(t){t.finished=!t.finished;store.set("tasks",ts2)}renderTasks();return;
+      }
+      S.selectedTask=S.selectedTask===id?null:id;store.set("selectedTask",S.selectedTask);renderTasks();updateTaskName();
+    });
+  });
+}
+function updateTaskName(){
+  const t=tasks().find(t=>t.id===S.selectedTask);
+  $("#currentTaskName").textContent=t?("正在专注 · "+t.title):"自由专注 · 未选择任务";
+}
+function addTask(){
+  const title=$("#taskInput").value.trim();if(!title){toast("先写下要专注的事");return}
+  const est=parseInt($("#taskPomoInput").value,10);
+  const ts=tasks();ts.push({id:Date.now(),title,est:isNaN(est)?null:Math.max(1,Math.min(20,est)),done:0,finished:false});
+  store.set("tasks",ts);$("#taskInput").value="";$("#taskPomoInput").value="";renderTasks();
+}
+$("#addTaskBtn").onclick=addTask;
+$("#taskInput").addEventListener("keydown",e=>{if(e.key==="Enter")addTask()});
+
+/* ============ 统计 ============ */
+function calcStreak(){
+  const all=stats();let n=0;const d=new Date();
+  for(;;){
+    const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    if(all[k]&&all[k].pomos>0)n++;else{if(n===0&&all[k]&&all[k].pomos===0){d.setDate(d.getDate()-1);continue}break}
+    d.setDate(d.getDate()-1);
+  }
+  return n;
+}
+function refreshSummary(){
+  const t=stats()[todayKey()]||{pomos:0,mins:0,distract:[]};
+  const streak=calcStreak();
+  [["sPomos",t.pomos],["sMins",t.mins],["sStreak",streak],["mPomos",t.pomos],["mMins",t.mins],["mStreak",streak],["stPomos",t.pomos],["stMins",t.mins],["stStreak",streak],["stDistract",(t.distract||[]).length]].forEach(([id,v])=>{const el=$("#"+id);if(el)el.textContent=v});
+}
+function renderStats(){
+  const all=stats(),t=all[todayKey()]||{pomos:0,mins:0,distract:[],imagery:{},marks:[]};
+  const track=$("#lightTrack");
+  track.innerHTML=(t.marks||[]).map(m=>{
+    const key=Object.keys(IMAGERIES).find(k=>k===m.img)||"flame";
+    return `<div class="lightMark" title="${new Date(m.at).toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})} 完成">${IMAGERIES[key].name.split(" ")[0]}</div>`;
+  }).join("")||'<span class="hint">今天还没有完成的番茄，去点亮第一束光吧。</span>';
+  const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);
+    const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    days.push({label:String(d.getMonth()+1)+"/"+d.getDate(),v:(all[k]&&all[k].mins)||0})}
+  const max=Math.max(30,...days.map(d=>d.v));
+  $("#barChart").innerHTML=days.map((d,i)=>`
+    <g transform="translate(${i*100+18},0)">
+      <rect x="0" y="${120-d.v/max*100}" width="56" height="${Math.max(2,d.v/max*100)}" rx="4" fill="var(--primary)" opacity="${d.v?1:.25}"/>
+      <text x="28" y="134" text-anchor="middle" font-size="11" fill="var(--text2)">${d.label}</text>
+      ${d.v?`<text x="28" y="${112-d.v/max*100}" text-anchor="middle" font-size="11" fill="var(--text)">${d.v}</text>`:""}
+    </g>`).join("");
+  const us=Object.entries(t.imagery||{});
+  $("#imageryUsage").innerHTML=us.length?us.map(([k,v])=>`<span class="usageBar">${IMAGERIES[k]?IMAGERIES[k].name:k} <b>×${v}</b></span>`).join(""):'<span class="hint">暂无数据</span>';
+  refreshSummary();
+}
+
+/* ============ 自习室 / 排行榜（演示数据） ============ */
+const DEMO_ROOMS=[
+  {id:1,name:"安静自习室",desc:"轻声区 · 专注中请勿打扰",members:[{n:"小鹿",e:"🦌",s:"focus"},{n:"阿澈",e:"🦊",s:"focus"},{n:"Momo",e:"🐼",s:"break"},{n:"深夜写手",e:"🦉",s:"focus"},{n:"K",e:"🐧",s:"idle"}]},
+  {id:2,name:"考研冲刺房",desc:"共勉模式 · 一人放弃全房黯淡一下",members:[{n:"上岸倒计时",e:"狸",s:"focus"},{n:"二战也从容",e:"🐢",s:"focus"},{n:"英语打卡中",e:"🐰",s:"break"}]},
+  {id:3,name:"深夜代码房",desc:"夜猫子聚集地 · 键盘声白噪音",members:[{n:"bug终结者",e:"👾",s:"focus"},{n:"修仙型选手",e:"🌙",s:"focus"}]}
+];
+const DEMO_LB=[{n:"小鹿",v:186},{n:"bug终结者",v:152},{n:"上岸倒计时",v:140},{n:"Momo",v:98},{n:"深夜写手",v:87},{n:"阿澈",v:66},{n:"K",v:41},{n:"Momo2",v:33}];
+function renderSocial(){
+  $("#roomList").innerHTML=DEMO_ROOMS.map(r=>`
+    <div class="room">
+      <h4>${r.name}</h4><p>${r.desc} · ${r.members.length} 人在线</p>
+      <div class="memberWall">${r.members.map(m=>`<div class="member ${m.s==="focus"?"focusing":""}"><div class="avatar">${m.e}</div><span>${m.n}</span><em>${m.s==="focus"?"专注中":m.s==="break"?"休息中":"空闲"}</em></div>`).join("")}</div>
+      <button class="btn" data-cheer="${r.id}">为房间送加油 ✨</button>
+    </div>`).join("");
+  $$("[data-cheer]").forEach(b=>b.onclick=()=>toast("已为房间送上加油 ✨（演示交互）"));
+  renderLeaderboard();
+}
+function renderLeaderboard(){
+  const t=stats()[todayKey()]||{pomos:0,mins:0};
+  const range=$("#lbRange").value,dim=$("#lbDim").value;
+  let myV=dim==="mins"?t.mins:calcStreak();
+  if(range==="week"){let w=0;const all=stats();for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()-i);const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");if(all[k])w+=all[k].mins||0}myV=dim==="mins"?w:calcStreak()}
+  const rows=DEMO_LB.map(x=>({n:x.n,v:Math.round(dim==="mins"?(range==="week"?x.v*5.2:x.v):(x.v/60))}));
+  if(!S.invisible)rows.push({n:(S.account?S.account.name:"我")+"（你）",v:myV,me:true});
+  rows.sort((a,b)=>b.v-a.v);
+  $("#leaderboard").innerHTML=`<table><tr><th class="rank">#</th><th>昵称</th><th style="text-align:right">${dim==="mins"?"专注分钟":"连续天数"}</th></tr>`+
+    rows.slice(0,10).map((r,i)=>`<tr class="${r.me?"me":""}"><td class="rank">${i+1}</td><td>${escapeHtml(r.n)}</td><td style="text-align:right;font-variant-numeric:tabular-nums">${r.v}</td></tr>`).join("")+"</table>"+
+    (S.invisible?'<p class="hint">你已开启隐身，未计入榜单。</p>':"");
+}
+$("#lbRange").onchange=renderLeaderboard;$("#lbDim").onchange=renderLeaderboard;
+
+/* ============ 账号（演示） ============ */
+function renderProfile(){
+  const a=S.account;
+  $("#profileArea").innerHTML=a?`
+    <div class="profileRow">
+      <div class="avatar" style="width:52px;height:52px;font-size:24px">${a.emoji}</div>
+      <div style="flex:1">
+        <div style="font-weight:600">${escapeHtml(a.name)}</div>
+        <div class="hint">通过 ${escapeHtml(a.via)} 登录 · 云同步：演示态 <span class="tag demo">DEMO</span></div>
+      </div>
+      <button class="btn ghost" id="logoutBtn">退出</button>
+    </div>
+    <div class="voiceItem"><span>多端云同步</span><button class="switch on" role="switch" aria-label="云同步"></button></div>
+    <div class="voiceItem"><span>排行榜隐身</span><button class="switch ${S.invisible?"on":""}" id="invisSwitch" role="switch" aria-label="隐身"></button></div>
+    <p class="hint">演示账号仅保存在本地浏览器，用于体验界面流程；真实社交登录与多端同步方案见「AI 编程提示词」。</p>`
+  :`<p class="hint" style="margin-bottom:12px">登录后可多端同步任务与统计（当前为演示流程）。</p>
+    <div class="loginBtns">
+      <button class="btn" data-login="微信" data-emoji="💚">微信登录</button>
+      <button class="btn" data-login="Google" data-emoji="🔵">Google 登录</button>
+      <button class="btn" data-login="Apple" data-emoji="🍎">Apple 登录</button>
+      <button class="btn" data-login="手机号" data-emoji="📱">手机号登录</button>
+    </div>
+    <p class="hint">也可以不登录，游客模式全部功能可用。</p>`;
+  $$("[data-login]").forEach(b=>b.onclick=()=>{
+    const via=b.dataset.login;
+    toast("正在跳转 "+via+" 授权…（演示）");
+    setTimeout(()=>{
+      S.account={name:"拾光者"+String(Math.floor(Math.random()*900)+100),emoji:b.dataset.emoji,via};
+      store.set("account",S.account);renderProfile();toast("登录成功，欢迎 "+S.account.name);
+    },900);
+  });
+  const lb=$("#logoutBtn");if(lb)lb.onclick=()=>{S.account=null;store.set("account",null);renderProfile();toast("已退出登录")};
+  const iv=$("#invisSwitch");if(iv)iv.onclick=()=>{S.invisible=!S.invisible;store.set("invisible",S.invisible);renderProfile();renderLeaderboard()};
+}
+
+/* ============ 主题 / 意象 / 背景 ============ */
+function renderThemes(){
+  $("#themeGrid").innerHTML=Object.entries(THEMES).map(([k,t])=>`
+    <button class="themeSwatch ${S.theme===k?"active":""}" data-theme-set="${k}">
+      <div class="swatchDot" style="background:linear-gradient(135deg, var(--bg) 40%, ${t.p})"></div>${t.name}
+    </button>`).join("");
+  $$("[data-theme-set]").forEach(b=>b.onclick=()=>{
+    S.theme=b.dataset.themeSet;store.set("theme",S.theme);
+    document.documentElement.setAttribute("data-theme",S.theme);
+    if(S.bgImage)$("#bgLayer").style.background=`url("${S.bgImage}")`;
+    renderThemes();toast("已切换到「"+THEMES[S.theme].name+"」主题");
+  });
+}
+function renderImageryGrid(){
+  $("#imageryGrid").innerHTML=Object.entries(IMAGERIES).map(([k,t])=>{
+    const idx=t.name.indexOf(" ");
+    const emoji=t.name.substring(0,idx);const label=t.name.substring(idx+1);
+    return `<button class="themeSwatch ${S.imagery===k?"active":""}" data-img-set="${k}">
+      <div class="swatchDot" style="display:grid;place-items:center;font-size:22px;background:var(--panel2)">${emoji}</div>${label}
+    </button>`;
+  }).join("");
+  $$("[data-img-set]").forEach(b=>b.onclick=()=>{
+    S.imagery=b.dataset.imgSet;store.set("imagery",S.imagery);renderImageryGrid();
+    if(S.phase!=="focus"&&S.phase!=="break")renderImagery(0);
+    toast("已选择意象「"+IMAGERIES[S.imagery].name+"」");
+  });
+}
+$("#bgFile").onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  if(f.size>3*1024*1024){toast("图片请小于 3MB，或换一张");return}
+  const fr=new FileReader();
+  fr.onload=()=>{S.bgImage=fr.result;store.set("bgImage",S.bgImage);$("#bgLayer").style.background=`url("${S.bgImage}")`;$("#bgShade").style.opacity=S.shade/100;toast("背景已更新")};
+  fr.readAsDataURL(f);
+};
+$("#bgClear").onclick=()=>{S.bgImage="";store.set("bgImage","");$("#bgLayer").style.background="none";$("#bgShade").style.opacity=0;toast("已恢复纯色背景")};
+$("#shadeRange").oninput=e=>{S.shade=+e.target.value;store.set("shade",S.shade);$("#shadeLabel").textContent="遮罩 "+S.shade+"%";$("#bgShade").style.opacity=S.bgImage?S.shade/100:0};
+
+/* ============ 时长 / 严格模式 / 激励语 ============ */
+function bindDur(id,key,labelId,unit){
+  const el=$(id);el.value=S.durations[key];
+  $(labelId).textContent=S.durations[key]+" "+unit;
+  el.oninput=e=>{S.durations[key]=+e.target.value;$(labelId).textContent=e.target.value+" "+unit;store.set("durations",S.durations);if(S.phase==="idle")$("#timeText").textContent=fmt(S.durations.focus*60000)};
+}
+$("#strictSwitch").onclick=()=>{S.strict=!S.strict;store.set("strict",S.strict);$("#strictSwitch").classList.toggle("on",S.strict);setControls();toast(S.strict?"严格模式：休息不可跳过，专注不可暂停":"温柔模式：可暂停、可跳过")};
+$("#quoteEditor").value=S.quotes.join("\n");
+$("#quoteSave").onclick=()=>{
+  S.quotes=$("#quoteEditor").value.split("\n").map(s=>s.trim()).filter(Boolean);
+  if(!S.quotes.length)S.quotes=DEFAULT_QUOTES.slice();
+  store.set("quotes",S.quotes);toast("激励语已保存（"+S.quotes.length+" 句）");
+};
+$("#clearData").onclick=()=>{
+  $("#modalBack").dataset.lock="1";
+  modal(`<h3 style="margin-bottom:8px">清除全部数据？</h3><p class="hint" style="margin-bottom:14px">任务、统计、设置、录音都将删除，无法恢复。</p>
+  <div class="row" style="justify-content:flex-end"><button class="btn ghost" id="cdCancel">取消</button><button class="btn danger" id="cdOk">全部清除</button></div>`);
+  $("#cdCancel").onclick=()=>{closeModal();delete $("#modalBack").dataset.lock};
+  $("#cdOk").onclick=()=>{Object.keys(localStorage).filter(k=>k.startsWith("lumos_")).forEach(k=>localStorage.removeItem(k));location.reload()};
+};
+
+/* ============ 新手教程（黑屏修复版） ============ */
+const TUT_STEPS=[
+  {page:"focus",sel:"#imageryBox",title:"认识意象计时器",text:"这里是「意象」——随专注进度成长。在「我的」页可换成番茄/炉火/种子/潮汐/蜡烛/星轨六种。"},
+  {page:"focus",sel:"#startBtn",title:"开始第一个专注",text:"点这里开始。计时基于时间戳计算，切后台、刷新都不丢进度。"},
+  {page:"focus",sel:"#distractBtn",title:"分心敲击",text:"想分心时点这个按钮。它只记录一次冲动，不会打断你——事后可在统计复盘。"},
+  {page:"focus",sel:"#imageryBox",title:"休息呼吸引导",text:"完成番茄后界面会切换到潮汐冷色，跟随圆环呼吸（吸 4 秒 / 呼 4 秒）休息。"},
+  {page:"social",sel:"#roomList",title:"自习室与排行榜",text:"在自习室和同伴一起专注（当前为演示数据），完成后去统计页看你的今日光轨。祝你拾光愉快！"}
+];
+let tutIdx=0;
+function startTutorial(fromStep){
+  tutIdx=fromStep||0;
+  $("#tutOverlay").classList.add("show");
+  $("#tutOverlay").setAttribute("aria-hidden","false");
+  showTutStep();
+}
+function showTutStep(){
+  if(tutIdx<0||tutIdx>=TUT_STEPS.length){endTutorial();return}
+  const step=TUT_STEPS[tutIdx];
+  $("#tutStep").textContent=(tutIdx+1)+" / "+TUT_STEPS.length;
+  $("#tutTitle").textContent=step.title;
+  $("#tutText").textContent=step.text;
+  $("#tutPrev").style.visibility=tutIdx>0?"visible":"hidden";
+  $("#tutNext").textContent=tutIdx===TUT_STEPS.length-1?"完成":"下一步";
+  if(!$("#page-"+step.page).classList.contains("active"))gotoPage(step.page);
+  requestAnimationFrame(()=>{
+    let el=null;
+    try{el=document.querySelector(step.sel)}catch(e){el=null}
+    const ok=el&&el.offsetParent!==null&&el.getBoundingClientRect().width>0;
+    const mask=$("#tutMask"),bubble=$("#tutBubble");
+    const vw=innerWidth,vh=innerHeight;
+    if(ok){
+      const r=el.getBoundingClientRect(),m=8;
+      mask.style.display="block";
+      mask.style.left=(r.left-m)+"px";mask.style.top=(r.top-m)+"px";
+      mask.style.width=(r.width+2*m)+"px";mask.style.height=(r.height+2*m)+"px";
+      bubble.style.left=Math.max(10,Math.min(vw-320,r.left))+"px";
+      if(r.bottom+330<vh)bubble.style.top=(r.bottom+14)+"px";
+      else bubble.style.top=Math.max(10,r.top-180)+"px";
+    }else{
+      // 兜底：居中气泡，绝不出现无出口的全屏黑
+      mask.style.display="none";
+      bubble.style.left=Math.max(10,(vw-300)/2)+"px";
+      bubble.style.top=Math.max(10,(vh-190)/2)+"px";
+    }
+  });
+}
+function endTutorial(){$("#tutOverlay").classList.remove("show");$("#tutOverlay").setAttribute("aria-hidden","true");store.set("tutDone",true);gotoPage("focus")}
+$("#tutNext").onclick=()=>{tutIdx++;showTutStep()};
+$("#tutPrev").onclick=()=>{tutIdx--;showTutStep()};
+$("#tutSkip").onclick=endTutorial;
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&$("#tutOverlay").classList.contains("show")){endTutorial();return}
+  if(e.key==="Escape")closeModal();
+  const typing=/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+  if(typing||$("#modalBack").classList.contains("show"))return;
+  if(e.code==="Space"){e.preventDefault();if(S.phase==="idle")startFocus();else if(S.phase==="focus"&&!S.strict)$("#pauseBtn").click()}
+  if(e.key.toLowerCase()==="d"&&S.phase==="focus")$("#distractBtn").click();
+  if(e.key.toLowerCase()==="s"&&S.phase==="break"&&!S.strict)$("#skipBtn").click();
+});
+$("#replayTut").onclick=()=>{gotoPage("focus");setTimeout(()=>startTutorial(0),150)};
+addEventListener("resize",()=>{if($("#tutOverlay").classList.contains("show"))showTutStep()});
+if(matchMedia("(prefers-reduced-motion: reduce)").matches)document.body.classList.add("reduced");
+
+/* ============ 启动 ============ */
+function init(){if(EMBED&&!store.get("theme"))S.theme="midnight";
+  buildNav();
+  document.documentElement.setAttribute("data-theme",S.theme);
+  if(S.bgImage){$("#bgLayer").style.background=`url("${S.bgImage}")`;$("#bgShade").style.opacity=S.shade/100}
+  $("#shadeRange").value=S.shade;$("#shadeLabel").textContent="遮罩 "+S.shade+"%";
+  $("#strictSwitch").classList.toggle("on",S.strict);
+  bindDur("#durFocus","focus","#vFocus","分钟");bindDur("#durShort","short","#vShort","分钟");
+  bindDur("#durLong","long","#vLong","分钟");bindDur("#durCycle","cycle","#vCycle","个番茄");
+  renderThemes();renderImageryGrid();renderTasks();renderProfile();renderVoiceList();
+  if(S.recVoice){$("#recPlay").disabled=false;$("#recDel").disabled=false}
+  resetIdle();refreshSummary();updateTaskName();
+  if(!EMBED&&!store.get("tutDone",false))setTimeout(()=>startTutorial(0),700);
+}
+init();
+</script>
+</body>
+</html>
